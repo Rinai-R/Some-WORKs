@@ -4,21 +4,26 @@ import "github.com/gin-gonic/gin"
 
 func InitRouter() {
 	r := gin.Default()
+	User := r.Group("/User")
+	{
+		User.POST("/Register", Register)
 
-	r.POST("/Register", Register)
+		User.POST("/Login", Login)
+		//需要身份验证
+		User.Use(Middleware())
 
-	r.POST("/Login", Login)
-	//需要身份验证
-	r.Use(Middleware())
+		User.GET("/GetUserInfo", GetUserInfo)
 
-	r.GET("/GetUserInfo", GetUserInfo)
+		User.PUT("/Recharge", Recharge)
 
-	r.PUT("/Recharge", Recharge)
+		User.PUT("AlterUserInfo", AlterUserInfo)
 
-	r.PUT("AlterUserInfo", AlterUserInfo)
-
-	r.DELETE("/DelUser", DelUser)
-
+		User.DELETE("/DelUser", DelUser)
+	}
+	Shop := r.Group("/Shop")
+	{
+		Shop.POST("/RegisterMall", RegitserMall)
+	}
 	err := r.Run(":8088")
 	if err != nil {
 		return

@@ -2,7 +2,9 @@ package dao
 
 import (
 	"Golang/2025/01January/Shopping/model"
+	"fmt"
 	"log"
+	"strings"
 )
 
 // SubmitOrder 提交订单，清空购物车
@@ -63,18 +65,7 @@ func ConfirmOrder(order model.Order) string {
 	if st == 1 {
 		return "deleted"
 	}
-	query = `UPDATE shopping_cart SET sum = 0 WHERE user_id = ?`
-	_, err = db.Exec(query, order.User_id)
-	if err != nil {
-		log.Println(err)
-		return "error"
-	}
-	query = `DELETE FROM cart_goods WHERE user_id = ?`
-	_, err = db.Exec(query, order.User_id)
-	if err != nil {
-		log.Println(err)
-		return "error"
-	}
+	//查看用户余额是否足够
 	query = `SELECT sum FROM orders WHERE id = ?`
 	var sum float64
 	err = db.QueryRow(query, order.Id).Scan(&sum)
@@ -87,6 +78,86 @@ func ConfirmOrder(order model.Order) string {
 	err = db.QueryRow(query, order.User_id).Scan(&balance)
 	if balance < sum {
 		return "lack"
+	}
+	//检查商品库存
+	query = `SELECT id, number FROM order_goods WHERE order_id = ?`
+	Rows, err0 := db.Query(query, order.Id)
+	if err0 != nil {
+		log.Println(err0)
+		return "error"
+	}
+	var LackGoods []string
+	for Rows.Next() {
+		var id int
+		var num int
+		err = Rows.Scan(&id, &num)
+		if err != nil {
+			log.Println(err)
+			return "error"
+		}
+		query = `SELECT number FROM goods WHERE id = ?`
+		var shop_num int
+		err = db.QueryRow(query, id).Scan(&shop_num)
+		if shop_num < num {
+			mes := fmt.Sprintf("Lack Goods id : %v, Current number: %v, Query number: %v ", id, shop_num, num)
+			LackGoods = append(LackGoods, mes)
+		}
+	}
+	//如果有缺货的商品，返回缺货商品组成的字符串
+	if LackGoods == nil {
+		return strings.Join(LackGoods, "|")
+	}
+
+	//最后开始执行交易
+	//此处减少商店库存
+	query = `SELECT id, number, price FROM order_goods WHERE order_id = ?`
+	Rows, err = db.Query(query, order.Id)
+	if err != nil {
+		log.Println(err)
+		return "error"
+	}
+	for Rows.Next() {
+		var id int
+		var num int
+		var price float64
+		err = Rows.Scan(&id, &num, &price)
+		if err != nil {
+			log.Println(err)
+			return "error"
+		}
+		query = `UPDATE goods SET number = number - ? WHERE id = ?`
+		_, err = db.Exec(query, num, id)
+		if err != nil {
+			log.Println(err)
+			return "error"
+		}
+		query = `SELECT shop_id FROM goods WHERE id = ?`
+		var shop_id int
+		err = db.QueryRow(query, id).Scan(&shop_id)
+		if err != nil {
+			log.Println(err)
+			return "error"
+		}
+		all := float64(num) * price
+		query = `UPDATE shop SET profit = profit + ? WHERE id = ?`
+		_, err = db.Exec(query, all, shop_id)
+		if err != nil {
+			log.Println(err)
+			return "error"
+		}
+	}
+	//清空购物车
+	query = `UPDATE shopping_cart SET sum = 0 WHERE user_id = ?`
+	_, err = db.Exec(query, order.User_id)
+	if err != nil {
+		log.Println(err)
+		return "error"
+	}
+	query = `DELETE FROM cart_goods WHERE user_id = ?`
+	_, err = db.Exec(query, order.User_id)
+	if err != nil {
+		log.Println(err)
+		return "error"
 	}
 	query = `UPDATE user SET balance = balance - ? WHERE id = ?`
 	_, err = db.Exec(query, sum, order.User_id)

@@ -59,7 +59,7 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	tokenstring, err1 := utils.GenerateJWT(user.Username)
+	tokenstring, err1 := utils.GenerateUserJWT(user.Username)
 	if err1 != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"code":    500,

@@ -8,9 +8,9 @@ func InitRouter() {
 	{
 		User.POST("/Register", Register)
 
-		User.POST("/Login", Login)
+		User.GET("/Login", Login)
 		//需要身份验证
-		User.Use(Middleware())
+		User.Use(UserMiddleware())
 
 		User.GET("/GetUserInfo", GetUserInfo)
 
@@ -23,6 +23,12 @@ func InitRouter() {
 	Shop := r.Group("/Shop")
 	{
 		Shop.POST("/RegisterMall", RegitserMall)
+
+		Shop.GET("/LoginMall", LoginMall)
+
+		Shop.Use(ShopMiddleware())
+
+		Shop.POST("/RegisterGoods", RegitserGoods)
 	}
 	err := r.Run(":8088")
 	if err != nil {

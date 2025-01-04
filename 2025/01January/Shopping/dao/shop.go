@@ -2,6 +2,8 @@ package dao
 
 import (
 	"Golang/2025/01January/Shopping/model"
+	"database/sql"
+	"errors"
 	"log"
 )
 
@@ -13,6 +15,17 @@ func ShopExist(shop model.Shop) bool {
 		return false
 	}
 	return Exist
+}
+
+func GetShopId(shop_name string) int {
+	var Id int
+	query := `SELECT id FROM shop WHERE shop_name = ?`
+	err := db.QueryRow(query, shop_name).Scan(&Id)
+	if err != nil {
+		log.Println(err)
+		return -1
+	}
+	return Id
 }
 
 func RegisterMall(shop model.Shop) bool {
@@ -30,6 +43,9 @@ func LoginMall(shop model.Shop) bool {
 	query := `select 1 from shop where shop_name = ? and password = ?`
 	err := db.QueryRow(query, shop.Shop_name, shop.Password).Scan(&exist)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return false
+		}
 		log.Println(err)
 		return false
 	}

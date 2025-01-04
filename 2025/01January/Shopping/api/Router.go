@@ -13,6 +13,12 @@ func InitRouter() {
 
 	r.GET("/GetUserInfo", GetUserInfo)
 
+	r.PUT("/Recharge", Recharge)
+
+	r.PUT("AlterUserInfo", AlterUserInfo)
+
+	r.DELETE("/DelUser", DelUser)
+
 	err := r.Run(":8088")
 	if err != nil {
 		return

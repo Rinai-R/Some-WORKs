@@ -3,7 +3,7 @@ package utils
 import (
 	"errors"
 	"fmt"
-	"github.com/golang-jwt/jwt/v5"
+	"github.com/golang-jwt/jwt/v4"
 	"time"
 )
 
@@ -13,7 +13,7 @@ func GenerateJWT(Message string) (string, error) {
 	token := jwt.New(jwt.SigningMethodHS256)
 	claims := token.Claims.(jwt.MapClaims)
 	claims["GetName"] = Message
-	claims["exp"] = time.Now().Add(time.Second * 60)
+	claims["exp"] = time.Now().Add(60 * time.Hour).Unix()
 	TokenString, err := token.SignedString(MySigningKey)
 	if err != nil {
 		return "", err
@@ -31,7 +31,7 @@ func VerifyJWT(TokenString string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	if claims, ok1 := token.Claims.(jwt.MapClaims); ok1 && token.Valid {
+	if claims, ok1 := token.Claims.(jwt.MapClaims); ok1 {
 		message := claims["GetName"].(string)
 		return message, nil
 	}

@@ -15,13 +15,15 @@ func Middleware() gin.HandlerFunc {
 				"code":    401,
 				"message": "token null",
 			})
+			c.Abort()
+			return
 		}
 
 		GetName, err := utils.VerifyJWT(TokenString)
 		if err != nil || GetName == "" {
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"code":    401,
-				"message": "token error",
+				"message": "token error " + err.Error(),
 			})
 			c.Abort()
 			return

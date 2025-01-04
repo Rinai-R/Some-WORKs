@@ -1,6 +1,8 @@
 package model
 
-import "time"
+import (
+	"time"
+)
 
 type User struct {
 	Id       int     `json:"id"`
@@ -8,6 +10,8 @@ type User struct {
 	Password string  `json:"password"`
 	Balance  float64 `json:"balance"`
 	Avatar   string  `json:"avatar"`
+	Nickname string  `json:"nickname"`
+	Bio      string  `json:"bio"`
 }
 
 type Msg struct {

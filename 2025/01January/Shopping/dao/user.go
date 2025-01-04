@@ -14,7 +14,7 @@ func Exist(username string) string {
 	query := `select 1 from user where username = ?`
 	err := db.QueryRow(query, username).Scan(&Exist)
 	if err != nil {
-		if errors.Is(sql.ErrNoRows, err) {
+		if errors.Is(err, sql.ErrNoRows) {
 			return "none"
 		}
 		log.Println(err)
@@ -75,8 +75,8 @@ func GetId(username string) string {
 }
 
 func GetUserInfo(user *model.User) bool {
-	query := `SELECT id, username, password, balance, avatar FROM user WHERE username = ?`
-	err := db.QueryRow(query, user.Username).Scan(&user.Id, &user.Username, &user.Password, &user.Balance, &user.Avatar)
+	query := `SELECT id, username, password, balance, avatar, nickname, bio FROM user WHERE username = ?`
+	err := db.QueryRow(query, user.Username).Scan(&user.Id, &user.Username, &user.Password, &user.Balance, &user.Avatar, &user.Nickname, &user.Bio)
 	if err != nil {
 		log.Println(err)
 		return false
@@ -84,9 +84,9 @@ func GetUserInfo(user *model.User) bool {
 	return true
 }
 
-func Recharge(user model.User) bool {
+func Recharge(money float64, username string) bool {
 	query := `UPDATE user SET balance = balance + ? WHERE username = ?`
-	_, err := db.Exec(query, user.Balance, user.Username)
+	_, err := db.Exec(query, money, username)
 	if err != nil {
 		log.Println(err)
 		return false
@@ -94,22 +94,19 @@ func Recharge(user model.User) bool {
 	return true
 }
 
-func AlterUserInfo(NewInfo model.User, id string) bool {
+func AlterUserInfo(NewInfo model.User, username string) bool {
 	if NewInfo.Password != "" {
 		query := `UPDATE user SET password = ? WHERE username = ?`
-		_, err := db.Exec(query, NewInfo.Password, id)
+		_, err := db.Exec(query, NewInfo.Password, username)
 		if err != nil {
 			log.Println(err)
 			return false
 		}
 	}
 
-	if NewInfo.Username != "" {
-		if Exist(NewInfo.Username) != "none" {
-			return false
-		}
-		query := `UPDATE user SET username = ? WHERE id = ?`
-		_, err := db.Exec(query, NewInfo.Username, id)
+	if NewInfo.Nickname != "" {
+		query := `UPDATE user SET nickname = ? WHERE username = ?`
+		_, err := db.Exec(query, NewInfo.Nickname, username)
 		if err != nil {
 			log.Println(err)
 			return false
@@ -117,12 +114,31 @@ func AlterUserInfo(NewInfo model.User, id string) bool {
 	}
 
 	if NewInfo.Avatar != "" {
-		query := `UPDATE user SET avatar = ? WHERE id = ?`
-		_, err := db.Exec(query, NewInfo.Avatar, id)
+		query := `UPDATE user SET avatar = ? WHERE username = ?`
+		_, err := db.Exec(query, NewInfo.Avatar, username)
 		if err != nil {
 			log.Println(err)
 			return false
 		}
+	}
+
+	if NewInfo.Bio != "" {
+		query := `UPDATE user SET bio = ? WHERE username = ?`
+		_, err := db.Exec(query, NewInfo.Bio, username)
+		if err != nil {
+			log.Println(err)
+			return false
+		}
+	}
+	return true
+}
+
+func DelUser(username string) bool {
+	query := `DELETE FROM user WHERE username = ?`
+	_, err := db.Exec(query, username)
+	if err != nil {
+		log.Println(err)
+		return false
 	}
 	return true
 }

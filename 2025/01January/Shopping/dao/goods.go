@@ -2,6 +2,8 @@ package dao
 
 import (
 	"Golang/2025/01January/Shopping/model"
+	"database/sql"
+	"errors"
 	"log"
 )
 
@@ -15,7 +17,36 @@ func GetGoodInfo(goods_id int) (int, float64) {
 		return 0, 0.0
 	}
 	return num, price
+}
 
+func GetShopAndGoodsInfo(shop *model.Shop) bool {
+	query := `SELECT id, shop_name, profit FROM shop WHERE shop_name = ?`
+	err := db.QueryRow(query, shop.Shop_name).Scan(&shop.Id, &shop.Shop_name, &shop.Profit)
+	if err != nil {
+		log.Println(err)
+		return false
+	}
+	var goods []model.DisplayGoods
+	query = `SELECT goods_name, type, price, star, avatar FROM goods WHERE shop_id = ?`
+	Rows, err0 := db.Query(query, shop.Id)
+	if err0 != nil {
+		if errors.Is(err0, sql.ErrNoRows) {
+			return true
+		}
+		log.Println(err)
+		return false
+	}
+	for Rows.Next() {
+		var tmp model.DisplayGoods
+		err = Rows.Scan(&tmp.Goods_name, &tmp.Type, &tmp.Price, &tmp.Star, &tmp.Avatar)
+		if err != nil {
+			log.Println(err)
+			return false
+		}
+		goods = append(goods, tmp)
+	}
+	shop.Goods = goods
+	return true
 }
 
 // AddGoods 向购物车中添加商品
@@ -135,7 +166,7 @@ func AssociationCount(search model.Search) []model.Association {
 		var tmp model.Association
 		tmp.Search_id = search.Id
 		var goods_content string
-		err = rows.Scan(&tmp.Goods_id, &tmp.Goods_name, &goods_content, &tmp.Avatar)
+		err = rows.Scan(&tmp.Goods_id, &tmp.Goods_name, &tmp.Avatar)
 		if err != nil {
 			log.Println(err)
 			return nil

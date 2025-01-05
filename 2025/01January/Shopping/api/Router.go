@@ -4,6 +4,9 @@ import "github.com/gin-gonic/gin"
 
 func InitRouter() {
 	r := gin.Default()
+
+	r.GET("/GetShopAndGoodsInfo", GetShopAndGoodsInfo)
+
 	User := r.Group("/User")
 	{
 		User.POST("/Register", Register)

@@ -126,5 +126,37 @@ func RegitserGoods(c *gin.Context) {
 		"message": "error",
 	})
 	return
+}
 
+func GetShopAndGoodsInfo(c *gin.Context) {
+	var shop model.Shop
+	err := c.BindJSON(&shop)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code":    500,
+			"message": "bind error " + err.Error(),
+		})
+		return
+	}
+	if shop.Shop_name == "" {
+		c.JSON(http.StatusNotAcceptable, gin.H{
+			"code":    406,
+			"message": "shop name null",
+		})
+		return
+	}
+	if !dao.GetShopAndGoodsInfo(&shop) {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code":    500,
+			"message": "error",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"code":    200,
+		"message": "ok",
+		"Info":    shop,
+	})
+	return
 }

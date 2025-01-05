@@ -167,3 +167,37 @@ func GetShopAndGoodsInfo(c *gin.Context) {
 	})
 	return
 }
+
+func AlterGoodsInfo(c *gin.Context) {
+	var goods model.Goods
+	err := c.BindJSON(&goods)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code": 500,
+			"info": "error " + err.Error(),
+		})
+		return
+	}
+	GetName, exist := c.Get("GetName")
+	if !exist {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"code": 401,
+			"info": "unauthorized",
+		})
+		return
+	}
+	goods.Shop_id = dao.GetShopId(GetName.(string))
+	if dao.AlterGoodsInfo(goods) {
+		c.JSON(http.StatusOK, gin.H{
+			"code": 200,
+			"info": "ok",
+		})
+		return
+	}
+
+	c.JSON(http.StatusInternalServerError, gin.H{
+		"code": 500,
+		"info": "error",
+	})
+	return
+}

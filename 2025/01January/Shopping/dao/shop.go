@@ -62,38 +62,72 @@ func RegisterGoods(goods model.Goods) bool {
 	return true
 }
 
-func AlterGoodsNumber(goods model.Goods) bool {
-	query := `update goods set number = ? where shop_id = ? AND id = ?`
-	res, err := db.Exec(query, goods.Number, goods.Shop_id, goods.Id)
-	if err != nil {
-		log.Println(err)
-		return false
+func AlterGoodsInfo(goods model.Goods) bool {
+	if goods.Goods_name != "" {
+		query := `UPDATE goods SET goods_name = ? WHERE id = ? AND shop_id = ?`
+		res, err := db.Exec(query, goods.Goods_name, goods.Id, goods.Shop_id)
+		if err != nil {
+			log.Println(err)
+			return false
+		}
+		aff, err0 := res.RowsAffected()
+		if err0 != nil || aff == 0 {
+			log.Println(err0)
+			return false
+		}
 	}
-	aff, err0 := res.RowsAffected()
-	if err0 != nil {
-		log.Println(err0)
-		return false
+	if goods.Content != "" {
+		query := `UPDATE goods SET content = ? WHERE id = ? AND shop_id = ?`
+		res, err := db.Exec(query, goods.Content, goods.Id, goods.Shop_id)
+		if err != nil {
+			log.Println(err)
+			return false
+		}
+		aff, err0 := res.RowsAffected()
+		if err0 != nil || aff == 0 {
+			log.Println(err0)
+			return false
+		}
 	}
-	if aff == 0 {
-		return false
+	if goods.Price != 0.0 {
+		query := `update goods set price = ? where shop_id = ? AND id = ?`
+		res, err := db.Exec(query, goods.Price, goods.Shop_id, goods.Id)
+		if err != nil {
+			log.Println(err)
+			return false
+		}
+		aff, err0 := res.RowsAffected()
+		if err0 != nil || aff == 0 {
+			log.Println(err0)
+			return false
+		}
 	}
-	return true
-}
+	if goods.Number != 0 {
+		query := `update goods set number = ? where shop_id = ? AND id = ?`
+		res, err := db.Exec(query, goods.Number, goods.Shop_id, goods.Id)
+		if err != nil {
+			log.Println(err)
+			return false
+		}
+		aff, err0 := res.RowsAffected()
+		if err0 != nil || aff == 0 {
+			log.Println(err0)
+			return false
+		}
+	}
 
-func AlterGoodsPrice(goods model.Goods) bool {
-	query := `update goods set price = ? where shop_id = ? AND id = ?`
-	res, err := db.Exec(query, goods.Price, goods.Shop_id, goods.Id)
-	if err != nil {
-		log.Println(err)
-		return false
-	}
-	aff, err0 := res.RowsAffected()
-	if err0 != nil {
-		log.Println(err0)
-		return false
-	}
-	if aff == 0 {
-		return false
+	if goods.Avatar != "" {
+		query := `UPDATE goods SET avatar = ? WHERE shop_id = ? AND id = ?`
+		res, err := db.Exec(query, goods.Avatar, goods.Shop_id, goods.Id)
+		if err != nil {
+			log.Println(err)
+			return false
+		}
+		aff, err0 := res.RowsAffected()
+		if err0 != nil || aff == 0 {
+			log.Println(err0)
+			return false
+		}
 	}
 	return true
 }

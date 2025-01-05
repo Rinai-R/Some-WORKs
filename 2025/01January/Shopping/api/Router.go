@@ -29,6 +29,7 @@ func InitRouter() {
 
 		User.DELETE("/DelGoodsFromCart", DelGoodsFromCart)
 	}
+
 	Shop := r.Group("/Shop")
 	{
 		Shop.POST("/RegisterMall", RegitserMall)
@@ -38,6 +39,8 @@ func InitRouter() {
 		Shop.Use(ShopMiddleware())
 
 		Shop.POST("/RegisterGoods", RegitserGoods)
+		//注意此处提交的信息，必须全部和原信息不一样
+		Shop.PUT("/AlterGoodsInfo", AlterGoodsInfo)
 	}
 	err := r.Run(":8088")
 	if err != nil {

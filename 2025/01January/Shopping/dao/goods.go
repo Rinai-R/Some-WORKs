@@ -80,16 +80,19 @@ func GetCartGoodsInfo(cart_goods model.Cart_Goods) (int, float64) {
 	err := db.QueryRow(query, cart_goods.User_Id, cart_goods.Goods_Id).Scan(&num, &price)
 	if err != nil {
 		log.Println(err)
-		return 0, 0.0
+		return -1, -1.0
 	}
 	return num, price
 }
 
 func DelCartGoods(cart_goods model.Cart_Goods) bool {
 	num, price := GetCartGoodsInfo(cart_goods)
+	if num == -1 {
+		return false
+	}
 	total := float64(num) * price
 	query := `UPDATE shopping_cart SET sum = sum - ? WHERE user_id = ?`
-	_, err := db.Exec(query, total)
+	_, err := db.Exec(query, total, cart_goods.User_Id)
 	if err != nil {
 		log.Println(err)
 		return false

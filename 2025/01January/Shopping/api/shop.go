@@ -112,6 +112,13 @@ func RegitserGoods(c *gin.Context) {
 		return
 	}
 	shop_name := GetName.(string)
+	if !dao.ShopExist(model.Shop{Shop_name: shop_name}) {
+		c.JSON(http.StatusNotAcceptable, gin.H{
+			"code": 406,
+			"info": "shop error",
+		})
+		return
+	}
 	goods.Shop_id = dao.GetShopId(shop_name)
 
 	if dao.RegisterGoods(goods) {

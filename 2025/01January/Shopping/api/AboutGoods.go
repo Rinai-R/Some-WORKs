@@ -41,5 +41,37 @@ func GetGoodsInfo(c *gin.Context) {
 		"data": goods,
 	})
 	return
+}
 
+func AddGoodsToCart(c *gin.Context) {
+	var goods model.Goods
+	GetName, exist := c.Get("GetName")
+	if !exist {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"code": 401,
+			"info": "unauthorized",
+		})
+		return
+	}
+	err := c.BindJSON(&goods)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code": 500,
+			"info": "error " + err.Error(),
+		})
+		return
+	}
+	username := GetName.(string)
+	if mes, ok := dao.AddGoods(username, goods); !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code": 500,
+			"info": mes,
+		})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"code": 200,
+		"info": "ok",
+	})
+	return
 }

@@ -18,7 +18,6 @@ func UserMiddleware() gin.HandlerFunc {
 			c.Abort()
 			return
 		}
-
 		GetName, err := utils.VerifyUserJWT(TokenString)
 		if err != nil || GetName == "" {
 			c.JSON(http.StatusUnauthorized, gin.H{
@@ -30,7 +29,6 @@ func UserMiddleware() gin.HandlerFunc {
 		}
 		c.Set("GetName", GetName)
 		c.Next()
-
 	}
 }
 func ShopMiddleware() gin.HandlerFunc {
@@ -45,7 +43,6 @@ func ShopMiddleware() gin.HandlerFunc {
 			c.Abort()
 			return
 		}
-
 		GetName, err := utils.VerifyShopJWT(TokenString)
 		if err != nil || GetName == "" {
 			c.JSON(http.StatusUnauthorized, gin.H{
@@ -57,6 +54,5 @@ func ShopMiddleware() gin.HandlerFunc {
 		}
 		c.Set("GetName", GetName)
 		c.Next()
-
 	}
 }

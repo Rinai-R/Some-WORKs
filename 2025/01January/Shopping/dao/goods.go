@@ -51,26 +51,26 @@ func GetShopAndGoodsInfo(shop *model.Shop) bool {
 }
 
 // AddGoods 向购物车中添加商品
-func AddGoods(user model.User, goods model.Goods) bool {
-	id := GetId(user.Username)
+func AddGoods(username string, goods model.Goods) (string, bool) {
+	id := GetId(username)
 	num, price := GetGoodInfo(goods.Id)
 	if num < goods.Number {
-		return false
+		return "lack", false
 	}
 	query := `insert into cart_goods (user_id, goods_id, number, price) values (?, ?, ?, ?)`
 	_, err1 := db.Exec(query, id, goods.Id, goods.Number, price)
 	if err1 != nil {
 		log.Println(err1)
-		return false
+		return err1.Error(), false
 	}
 	query = `update shopping_cart set sum = sum + ? where user_id = ?`
 	sum := float64(goods.Number) * price
-	_, err2 := db.Exec(query, sum, user.Username)
+	_, err2 := db.Exec(query, sum, id)
 	if err2 != nil {
 		log.Println(err2)
-		return false
+		return err2.Error(), false
 	}
-	return true
+	return "", true
 }
 
 func GetCartGoodsInfo(cart_goods model.Cart_Goods) (int, float64) {

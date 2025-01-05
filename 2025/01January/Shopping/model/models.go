@@ -23,6 +23,7 @@ type Msg struct {
 	Praised_num int       `json:"praised_num"`
 	Create_at   time.Time `json:"create_at"`
 	Updated_at  time.Time `json:"updated_at"`
+	Response    []Msg     `json:"response"`
 }
 
 type Goods struct {

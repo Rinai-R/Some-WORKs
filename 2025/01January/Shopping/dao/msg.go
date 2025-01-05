@@ -30,21 +30,21 @@ func GetGoodsMsg(goods model.Goods) []model.Msg {
 			log.Println(err)
 			return nil
 		}
+		MainMsg.Response = append(MainMsg.Response, InOrder(ans, MainMsg.Id)...)
 		ans = append(ans, MainMsg)
-		InOrder(ans, MainMsg.Id)
 	}
 	return ans
 }
 
-func InOrder(ans []model.Msg, parent_id int) {
+func InOrder(ans []model.Msg, parent_id int) []model.Msg {
 	query := `SELECT id FROM msg WHERE parent_id = id`
 	rows, err := db.Query(query, parent_id)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return
+			return nil
 		}
 		log.Println(err)
-		return
+		return nil
 	}
 	for rows.Next() {
 		var id string
@@ -54,12 +54,12 @@ func InOrder(ans []model.Msg, parent_id int) {
 		err = db.QueryRow(query, id).Scan(&message.Id, &message.Parent_id, &message.User_id, &message.Content, &message.Praised_num, &message.Create_at, &message.Updated_at)
 		if err != nil {
 			log.Println(err)
-			return
+			return nil
 		}
+		message.Response = append(message.Response, InOrder(ans, message.Id)...)
 		ans = append(ans, message)
-		InOrder(ans, message.Id)
 	}
-	return
+	return ans
 }
 
 // PubMsg 发布评论

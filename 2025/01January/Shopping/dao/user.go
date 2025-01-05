@@ -51,7 +51,7 @@ func Login(user model.User) string {
 	var exist bool
 	err := db.QueryRow(query, user.Username, user.Password).Scan(&exist)
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if errors.Is(err, sql.ErrNoRows) {
 			return "wrong password or username"
 		}
 		log.Println(err)

@@ -5,7 +5,7 @@ import (
 )
 
 type User struct {
-	Id       int     `json:"id"`
+	Id       string  `json:"id"`
 	Username string  `json:"username"`
 	Password string  `json:"password"`
 	Balance  float64 `json:"balance"`
@@ -15,10 +15,10 @@ type User struct {
 }
 
 type Msg struct {
-	Id          int       `json:"id"`
-	Parent_id   int       `json:"parent_id"`
+	Id          string    `json:"id"`
+	Parent_id   string    `json:"parent_id"`
 	Content     string    `json:"content"`
-	User_id     int       `json:"user_id"`
+	User_id     string    `json:"user_id"`
 	Goods_id    string    `json:"goods_id"`
 	Praised_num int       `json:"praised_num"`
 	Create_at   time.Time `json:"create_at"`
@@ -27,10 +27,10 @@ type Msg struct {
 }
 
 type Goods struct {
-	Id         int     `json:"id"`
+	Id         string  `json:"id"`
 	Avatar     string  `json:"avatar"`
 	Goods_name string  `json:"goods_name"`
-	Shop_id    int     `json:"shop_id"`
+	Shop_id    string  `json:"shop_id"`
 	Content    string  `json:"content"`
 	Type       string  `json:"type"`
 	Number     int     `json:"number"`
@@ -39,14 +39,14 @@ type Goods struct {
 }
 
 type Cart_Goods struct {
-	Goods_Id int     `json:"id"`
+	Goods_Id string  `json:"id"`
 	Number   int     `json:"number"`
 	Price    float64 `json:"price"`
-	User_Id  int     `json:"user_id"`
+	User_Id  string  `json:"user_id"`
 }
 
 type Shop struct {
-	Id        int     `json:"id"`
+	Id        string  `json:"id"`
 	Shop_name string  `json:"shop_name"`
 	Password  string  `json:"password"`
 	Profit    float64 `json:"profit"`

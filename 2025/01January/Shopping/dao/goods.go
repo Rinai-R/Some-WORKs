@@ -5,9 +5,10 @@ import (
 	"database/sql"
 	"errors"
 	"log"
+	"strconv"
 )
 
-func GetGoodInfo(goods_id int) (int, float64) {
+func GetGoodInfo(goods_id string) (int, float64) {
 	query := `select number, price from goods where id = ?`
 	var num int
 	var price float64
@@ -150,7 +151,7 @@ func SearchGoods(search model.Search) []model.Association {
 		log.Println(err1)
 		return nil
 	}
-	search.Id = int(Id)
+	search.Id = strconv.FormatInt(Id, 10)
 	return AssociationCount(search)
 }
 

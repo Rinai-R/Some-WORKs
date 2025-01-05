@@ -4,6 +4,7 @@ import (
 	"Golang/2025/01January/Shopping/model"
 	"fmt"
 	"log"
+	"strconv"
 	"strings"
 )
 
@@ -27,7 +28,7 @@ func SubmitOrder(order *model.Order) bool {
 		log.Println(err1)
 		return false
 	}
-	order.Id = int(id)
+	order.Id = strconv.FormatInt(id, 10)
 	//给订单添加商品
 	query = `SELECT goods_id, number, price FROM cart_goods WHERE user_id = ?`
 	Rows, err2 := db.Query(query, order.User_id)

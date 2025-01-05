@@ -14,29 +14,29 @@ func Register(c *gin.Context) {
 	err := c.BindJSON(&user)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"code":    500,
-			"message": "bind error " + err.Error(),
+			"code": 500,
+			"info": "bind error " + err.Error(),
 		})
 		return
 	}
 	if err := dao.Exist(user.Username); err != "none" {
 		c.JSON(http.StatusNotAcceptable, gin.H{
-			"code":    406,
-			"message": err,
+			"code": 406,
+			"info": err,
 		})
 		return
 	}
 
 	if !dao.Register(user) {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"code":    500,
-			"message": "register error",
+			"code": 500,
+			"info": "register error",
 		})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{
-		"code":    200,
-		"message": "success",
+		"code": 200,
+		"info": "success",
 	})
 	return
 }
@@ -46,15 +46,15 @@ func Login(c *gin.Context) {
 	err := c.BindJSON(&user)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"code":    500,
-			"message": "bind error " + err.Error(),
+			"code": 500,
+			"info": "bind error " + err.Error(),
 		})
 		return
 	}
 	if ms := dao.Login(user); ms != "ok" {
 		c.JSON(http.StatusNotAcceptable, gin.H{
-			"code":    406,
-			"message": ms,
+			"code": 406,
+			"info": ms,
 		})
 		return
 	}
@@ -62,16 +62,16 @@ func Login(c *gin.Context) {
 	tokenstring, err1 := utils.GenerateUserJWT(user.Username)
 	if err1 != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"code":    500,
-			"message": err1.Error(),
+			"code": 500,
+			"info": err1.Error(),
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"code":    200,
-		"message": "ok",
-		"token":   tokenstring,
+		"code":  200,
+		"info":  "ok",
+		"token": tokenstring,
 	})
 	return
 
@@ -81,8 +81,8 @@ func GetUserInfo(c *gin.Context) {
 	GetName, exist := c.Get("GetName")
 	if !exist || GetName == "" {
 		c.JSON(http.StatusUnauthorized, gin.H{
-			"code":    401,
-			"message": "unauthorized",
+			"code": 401,
+			"info": "unauthorized",
 		})
 		return
 	}
@@ -92,29 +92,29 @@ func GetUserInfo(c *gin.Context) {
 
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"code":    500,
-			"message": "get user info error"})
+			"code": 500,
+			"info": "get user info error"})
 		return
 	}
 	if dao.Exist(user.Username) != "exists" {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"code":    500,
-			"message": "get user info error",
+			"code": 500,
+			"info": "get user info error",
 		})
 		return
 	}
 	if !dao.GetUserInfo(user) {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"code":    500,
-			"message": "get user info error",
+			"code": 500,
+			"info": "get user info error",
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"code":     200,
-		"message":  "ok",
-		"UserInfo": user,
+		"code": 200,
+		"info": "ok",
+		"data": user,
 	})
 }
 
@@ -123,36 +123,36 @@ func Recharge(c *gin.Context) {
 	moneystr, err := strconv.ParseFloat(money, 64)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"code":    406,
-			"message": "money error",
+			"code": 406,
+			"info": "money error",
 		})
 	}
 	GetName, exist := c.Get("GetName")
 	if !exist || GetName == "" {
 		c.JSON(http.StatusUnauthorized, gin.H{
-			"code":    401,
-			"message": "unauthorized",
+			"code": 401,
+			"info": "unauthorized",
 		})
 		return
 	}
 	username := GetName.(string)
 	if dao.Exist(username) != "exists" {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"code":    500,
-			"message": "get user info error",
+			"code": 500,
+			"info": "get user info error",
 		})
 		return
 	}
 	if dao.Recharge(moneystr, username) {
 		c.JSON(http.StatusOK, gin.H{
-			"code":    200,
-			"message": "ok",
+			"code": 200,
+			"info": "ok",
 		})
 		return
 	}
 	c.JSON(http.StatusInternalServerError, gin.H{
-		"code":    500,
-		"message": "recharge error",
+		"code": 500,
+		"info": "recharge error",
 	})
 	return
 }
@@ -161,16 +161,16 @@ func AlterUserInfo(c *gin.Context) {
 	GetName, exist := c.Get("GetName")
 	if !exist || GetName == "" {
 		c.JSON(http.StatusUnauthorized, gin.H{
-			"code":    401,
-			"message": "unauthorized",
+			"code": 401,
+			"info": "unauthorized",
 		})
 		return
 	}
 	username := GetName.(string)
 	if dao.Exist(username) != "exists" {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"code":    500,
-			"message": "get user info error",
+			"code": 500,
+			"info": "get user info error",
 		})
 		return
 	}
@@ -178,22 +178,22 @@ func AlterUserInfo(c *gin.Context) {
 	err := c.BindJSON(&NewUser)
 	if err != nil {
 		c.JSON(http.StatusNotAcceptable, gin.H{
-			"code":    406,
-			"message": "bind err " + err.Error(),
+			"code": 406,
+			"info": "bind err " + err.Error(),
 		})
 		return
 	}
 
 	if dao.AlterUserInfo(NewUser, username) {
 		c.JSON(http.StatusOK, gin.H{
-			"code":    200,
-			"message": "ok",
+			"code": 200,
+			"info": "ok",
 		})
 		return
 	}
 	c.JSON(http.StatusInternalServerError, gin.H{
-		"code":    500,
-		"message": "alter error",
+		"code": 500,
+		"info": "alter error",
 	})
 	return
 }
@@ -202,28 +202,28 @@ func DelUser(c *gin.Context) {
 	GetName, exist := c.Get("GetName")
 	if !exist || GetName == "" {
 		c.JSON(http.StatusUnauthorized, gin.H{
-			"code":    401,
-			"message": "unauthorized",
+			"code": 401,
+			"info": "unauthorized",
 		})
 		return
 	}
 	username := GetName.(string)
 	if dao.Exist(username) != "exists" {
 		c.JSON(http.StatusNotAcceptable, gin.H{
-			"code":    406,
-			"message": "user doesn't exists",
+			"code": 406,
+			"info": "user doesn't exists",
 		})
 	}
 	if !dao.DelUser(username) {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"code":    500,
-			"message": "delete user error",
+			"code": 500,
+			"info": "delete user error",
 		})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{
-		"code":    200,
-		"message": "ok",
+		"code": 200,
+		"info": "ok",
 	})
 	return
 }

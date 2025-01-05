@@ -22,6 +22,8 @@ func InitRouter() {
 		User.PUT("AlterUserInfo", AlterUserInfo)
 
 		User.DELETE("/DelUser", DelUser)
+
+		User.GET("/BrowseGoods", GetGoodsInfo)
 	}
 	Shop := r.Group("/Shop")
 	{

@@ -17,13 +17,13 @@ func ShopExist(shop model.Shop) bool {
 	return Exist
 }
 
-func GetShopId(shop_name string) int {
-	var Id int
+func GetShopId(shop_name string) string {
+	var Id string
 	query := `SELECT id FROM shop WHERE shop_name = ?`
 	err := db.QueryRow(query, shop_name).Scan(&Id)
 	if err != nil {
 		log.Println(err)
-		return -1
+		return ""
 	}
 	return Id
 }

@@ -36,7 +36,7 @@ func GetGoodsMsg(goods model.Goods) []model.Msg {
 	return ans
 }
 
-func InOrder(ans []model.Msg, parent_id int) []model.Msg {
+func InOrder(ans []model.Msg, parent_id string) []model.Msg {
 	query := `SELECT id FROM msg WHERE parent_id = id`
 	rows, err := db.Query(query, parent_id)
 	if err != nil {

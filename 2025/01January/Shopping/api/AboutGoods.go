@@ -241,3 +241,28 @@ func GetAllStar(c *gin.Context) {
 	})
 	return
 }
+
+func SearchGoods(c *gin.Context) {
+	var search model.Search
+	err := c.BindJSON(&search)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code": 500,
+			"info": "error " + err.Error(),
+		})
+		return
+	}
+	if lists := dao.SearchGoods(search); lists != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"code": 200,
+			"info": "ok",
+			"data": lists,
+		})
+		return
+	}
+	c.JSON(http.StatusInternalServerError, gin.H{
+		"code": 500,
+		"info": "error",
+	})
+	return
+}

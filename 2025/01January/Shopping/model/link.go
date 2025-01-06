@@ -16,14 +16,17 @@ type Praise struct {
 }
 
 type Search struct {
-	Id      string `json:"id"`
+	Id      string
 	Content string `json:"content"`
 }
 
 type Association struct {
-	Search_id  string `json:"search_id"`
-	Goods_id   string `json:"goods_id"`
-	Goods_name string `json:"goods_name"`
-	Avatar     string `json:"avatar"`
-	Value      int    `json:"value"`
+	Search_id  string
+	Goods_id   string
+	Goods_name string
+	Avatar     string
+	Value      int
+	Star       int
+	Price      float64
+	Type       string
 }

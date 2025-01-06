@@ -11,6 +11,8 @@ func InitRouter() {
 
 	r.GET("/GetTypeGoods", SearchType)
 
+	r.GET("/Search", SearchGoods)
+
 	User := r.Group("/User")
 	{
 		User.POST("/Register", Register)

@@ -255,7 +255,7 @@ func SearchGoods(search model.Search) []model.Association {
 }
 
 func AssociationCount(search model.Search) []model.Association {
-	query := `SELECT id, goods_name, content, avatar FROM goods `
+	query := `SELECT id, goods_name, type, price, star, avatar, content FROM goods `
 	rows, err := db.Query(query)
 	if err != nil {
 		log.Println(err)
@@ -263,31 +263,33 @@ func AssociationCount(search model.Search) []model.Association {
 	}
 	var ans []model.Association
 	for rows.Next() {
-		var tmp model.Association
+		tmp := struct {
+			model.Association
+			content string
+		}{}
 		tmp.Search_id = search.Id
-		var goods_content string
-		err = rows.Scan(&tmp.Goods_id, &tmp.Goods_name, &tmp.Avatar)
+		err = rows.Scan(&tmp.Goods_id, &tmp.Goods_name, &tmp.Type, &tmp.Price, &tmp.Star, &tmp.Avatar, &tmp.content)
 		if err != nil {
 			log.Println(err)
 			return nil
 		}
-		tmp.Value = ComPare(search.Content, goods_content) + ComPare(search.Content, tmp.Goods_name)
-		query = `INSERT INTO association (search_id, goods_id, value, goods_name, avatar) values(?, ?, ?, ?, ?)`
-		_, err = db.Exec(query, tmp.Search_id, tmp.Goods_id, tmp.Value, tmp.Goods_name, tmp.Avatar)
+		tmp.Value = ComPare(search.Content, tmp.content) + ComPare(search.Content, tmp.Goods_name)
+		query = `INSERT INTO association (search_id, goods_id, value, goods_name, avatar, price, type, star) values(?, ?, ?, ?, ?, ?, ?, ?)`
+		_, err = db.Exec(query, tmp.Search_id, tmp.Goods_id, tmp.Value, tmp.Goods_name, tmp.Avatar, tmp.Price, tmp.Type, tmp.Star)
 		if err != nil {
 			log.Println(err)
 			return nil
 		}
 	}
-	query = `SELECT search_id, goods_id, value, goods_name, avatar FROM association ORDER BY value DESC`
-	ROWS, err1 := db.Query(query)
+	query = `SELECT search_id, goods_id, value, goods_name, avatar, price, type, star FROM association WHERE search_id = ? ORDER BY value DESC `
+	ROWS, err1 := db.Query(query, search.Id)
 	if err1 != nil {
 		log.Println(err1)
 		return nil
 	}
 	for ROWS.Next() {
 		var res model.Association
-		err1 = ROWS.Scan(&res.Search_id, &res.Goods_id, &res.Value, &res.Goods_name, &res.Avatar)
+		err1 = ROWS.Scan(&res.Search_id, &res.Goods_id, &res.Value, &res.Goods_name, &res.Avatar, &res.Price, &res.Type, &res.Star)
 		if err1 != nil {
 			log.Println(err1)
 			return nil

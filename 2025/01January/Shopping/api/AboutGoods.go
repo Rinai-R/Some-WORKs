@@ -158,3 +158,28 @@ func GetCartGoods(c *gin.Context) {
 	})
 	return
 }
+
+func SearchType(c *gin.Context) {
+	var goods model.DisplayGoods
+	err := c.BindJSON(&goods)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code": 500,
+			"info": "error " + err.Error(),
+		})
+		return
+	}
+	if data, ok := dao.SearchTypeGoods(&goods); ok {
+		c.JSON(http.StatusOK, gin.H{
+			"code": 200,
+			"info": "ok",
+			"data": data,
+		})
+		return
+	}
+	c.JSON(http.StatusInternalServerError, gin.H{
+		"code": 500,
+		"info": "error",
+	})
+	return
+}

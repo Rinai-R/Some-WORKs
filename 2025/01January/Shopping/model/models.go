@@ -56,7 +56,7 @@ type Shop struct {
 type DisplayGoods struct {
 	Avatar     string
 	Goods_name string
-	Type       string
+	Type       string `json:"type"`
 	Price      float64
 	Star       int
 }

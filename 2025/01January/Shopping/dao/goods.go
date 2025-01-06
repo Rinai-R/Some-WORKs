@@ -160,14 +160,24 @@ func StarGoods(star model.Star) bool {
 	return true
 }
 
-func SearchTypeGoods(goods *model.Goods) bool {
-	query := `SELECT id, goods_name, shop_id, type, number, price, star FROM goods WHERE type = ? ORDER BY star DESC `
-	err := db.QueryRow(query, goods.Type).Scan(&goods.Id, &goods.Goods_name, &goods.Type, &goods.Number, &goods.Price, &goods.Price, &goods.Star)
+func SearchTypeGoods(goods *model.DisplayGoods) ([]model.DisplayGoods, bool) {
+	query := `SELECT goods_name, type, price, star, avatar  FROM goods WHERE type = ? ORDER BY star DESC `
+	rows, err := db.Query(query, goods.Type)
 	if err != nil {
 		log.Println(err)
-		return false
+		return nil, false
 	}
-	return true
+	var ans []model.DisplayGoods
+	for rows.Next() {
+		var res model.DisplayGoods
+		err = rows.Scan(&res.Goods_name, &res.Type, &res.Price, &res.Star, &res.Avatar)
+		if err != nil {
+			log.Println(err)
+			return nil, false
+		}
+		ans = append(ans, res)
+	}
+	return ans, true
 }
 
 func SearchGoods(search model.Search) []model.Association {

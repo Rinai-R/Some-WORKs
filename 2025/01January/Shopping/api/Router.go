@@ -1,6 +1,8 @@
 package api
 
-import "github.com/gin-gonic/gin"
+import (
+	"github.com/gin-gonic/gin"
+)
 
 func InitRouter() {
 	r := gin.Default()
@@ -28,6 +30,8 @@ func InitRouter() {
 		User.POST("/AddGoodsToCart", AddGoodsToCart)
 
 		User.DELETE("/DelGoodsFromCart", DelGoodsFromCart)
+
+		User.GET("/GetCartInfo", GetCartGoods)
 	}
 
 	Shop := r.Group("/Shop")

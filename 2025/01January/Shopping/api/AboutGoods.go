@@ -132,3 +132,29 @@ func DelGoodsFromCart(c *gin.Context) {
 	})
 	return
 }
+
+func GetCartGoods(c *gin.Context) {
+	var cart model.Shopping_Cart
+	GetName, exist := c.Get("GetName")
+	if !exist {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"code": 401,
+			"info": "unauthorized",
+		})
+		return
+	}
+	cart.Id = dao.GetId(GetName.(string))
+	if cart.Id == "" || !dao.GetCartInfo(&cart) {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code": 500,
+			"info": "error",
+		})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"code": 200,
+		"info": "ok",
+		"data": cart,
+	})
+	return
+}

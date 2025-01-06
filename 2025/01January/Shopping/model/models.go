@@ -60,3 +60,9 @@ type DisplayGoods struct {
 	Price      float64
 	Star       int
 }
+
+type Shopping_Cart struct {
+	Id    string `json:"id"`
+	Sum   float64
+	Goods []Cart_Goods
+}

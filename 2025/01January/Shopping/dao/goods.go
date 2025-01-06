@@ -85,6 +85,34 @@ func GetCartGoodsInfo(cart_goods model.Cart_Goods) (int, float64) {
 	return num, price
 }
 
+func GetCartInfo(cart *model.Shopping_Cart) bool {
+	query := `SELECT sum FROM shopping_cart WHERE user_id = ?`
+	err := db.QueryRow(query, cart.Id).Scan(&cart.Sum)
+	if err != nil {
+		log.Println(err)
+		return false
+	}
+	query = `SELECT goods_id, number, price FROM cart_goods WHERE user_id = ?`
+	Rows, err0 := db.Query(query, cart.Id)
+	if err0 != nil {
+		if errors.Is(err0, sql.ErrNoRows) {
+			return false
+		}
+		log.Println(err0)
+		return false
+	}
+	for Rows.Next() {
+		var cart_goods model.Cart_Goods
+		err = Rows.Scan(&cart_goods.Goods_Id, &cart_goods.Number, &cart_goods.Price)
+		if err != nil {
+			log.Println(err)
+			return false
+		}
+		cart.Goods = append(cart.Goods, cart_goods)
+	}
+	return true
+}
+
 func DelCartGoods(cart_goods model.Cart_Goods) bool {
 	num, price := GetCartGoodsInfo(cart_goods)
 	if num == -1 {

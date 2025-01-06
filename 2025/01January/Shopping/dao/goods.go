@@ -151,13 +151,71 @@ func BrowseGoods(goods *model.Goods, Browse model.Browse) bool {
 }
 
 func StarGoods(star model.Star) bool {
-	query := `INSERT INTO star (user_id, goods_id) values(?, ?)`
-	_, err := db.Exec(query, star.User_id, star.Goods_id)
-	if err != nil {
+	query := `SELECT 1 FROM star WHERE user_id = ? AND goods_id = ?`
+	var exist bool
+	err := db.QueryRow(query, star.User_id, star.Goods_id).Scan(&exist)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		log.Println(err)
 		return false
 	}
+	if !exist {
+		query = `INSERT INTO star (user_id, goods_id) values(?, ?)`
+		_, err = db.Exec(query, star.User_id, star.Goods_id)
+		if err != nil {
+			log.Println(err)
+			return false
+		}
+		query = `UPDATE goods SET star = star + 1 WHERE id = ?`
+		_, err = db.Exec(query, star.Goods_id)
+		if err != nil {
+			log.Println(err)
+			return false
+		}
+	} else {
+		query = `DELETE FROM star WHERE goods_id = ? AND user_id = ?`
+		_, err = db.Exec(query, star.Goods_id, star.User_id)
+		if err != nil {
+			log.Println(err)
+			return false
+		}
+		query = `UPDATE goods SET star = star - 1 WHERE id = ?`
+		_, err = db.Exec(query, star.Goods_id)
+		if err != nil {
+			log.Println(err)
+			return false
+		}
+	}
 	return true
+}
+
+func GetAllStar(user model.User) ([]model.DisplayGoods, bool) {
+	var ans []model.DisplayGoods
+	query := `SELECT goods_id FROM star WHERE user_id = ?`
+	Rows, err := db.Query(query, user.Id)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, true
+		}
+		log.Println(err)
+		return nil, false
+	}
+	for Rows.Next() {
+		var id string
+		err = Rows.Scan(&id)
+		if err != nil {
+			log.Println(err)
+			return nil, false
+		}
+		var goods model.DisplayGoods
+		query = `SELECT goods_name, type, price, star, avatar FROM goods WHERE id = ?`
+		err = db.QueryRow(query, id).Scan(&goods.Goods_name, &goods.Type, &goods.Price, &goods.Star, &goods.Avatar)
+		if err != nil {
+			log.Println(err)
+			return nil, false
+		}
+		ans = append(ans, goods)
+	}
+	return ans, true
 }
 
 func SearchTypeGoods(goods *model.DisplayGoods) ([]model.DisplayGoods, bool) {

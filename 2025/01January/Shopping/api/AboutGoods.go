@@ -183,3 +183,61 @@ func SearchType(c *gin.Context) {
 	})
 	return
 }
+
+func Star(c *gin.Context) {
+	var star model.Star
+	err := c.BindJSON(&star)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code": 500,
+			"info": "error " + err.Error(),
+		})
+		return
+	}
+	GetName, exist := c.Get("GetName")
+	if !exist {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"code": 401,
+			"info": "unauthorized",
+		})
+		return
+	}
+	star.User_id = dao.GetId(GetName.(string))
+	if !dao.StarGoods(star) {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code": 500,
+			"info": "error",
+		})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"code": 200,
+		"info": "ok",
+	})
+	return
+}
+
+func GetAllStar(c *gin.Context) {
+	GetName, exist := c.Get("GetName")
+	if !exist {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"code": 401,
+			"info": "unauthorized"})
+		return
+	}
+	var user model.User
+	user.Id = dao.GetId(GetName.(string))
+	if goods, ok := dao.GetAllStar(user); ok {
+		c.JSON(http.StatusOK, gin.H{
+			"code": 200,
+			"info": "ok",
+			"data": goods,
+		})
+		return
+	}
+	c.JSON(http.StatusInternalServerError, gin.H{
+		"code": 500,
+		"info": "error",
+	})
+	return
+}

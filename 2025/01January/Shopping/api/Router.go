@@ -34,6 +34,10 @@ func InitRouter() {
 		User.DELETE("/DelGoodsFromCart", DelGoodsFromCart)
 
 		User.GET("/GetCartInfo", GetCartGoods)
+
+		User.PUT("/Star", Star)
+
+		User.GET("/GetAllStar", GetAllStar)
 	}
 
 	Shop := r.Group("/Shop")

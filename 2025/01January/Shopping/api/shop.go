@@ -201,3 +201,36 @@ func AlterGoodsInfo(c *gin.Context) {
 	})
 	return
 }
+
+func DelGoods(c *gin.Context) {
+	GetName, exist := c.Get("GetName")
+	if !exist {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"code": 401,
+			"info": "unauthorized",
+		})
+		return
+	}
+	var goods model.Goods
+	err := c.BindJSON(&goods)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code": 500,
+			"info": "error " + err.Error(),
+		})
+		return
+	}
+	goods.Shop_id = dao.GetShopId(GetName.(string))
+	if !dao.DeleteGoods(goods) {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code": 500,
+			"info": "null",
+		})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"code": 200,
+		"info": "ok",
+	})
+	return
+}

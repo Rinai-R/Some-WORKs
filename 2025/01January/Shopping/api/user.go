@@ -126,6 +126,7 @@ func Recharge(c *gin.Context) {
 			"code": 406,
 			"info": "money error",
 		})
+		return
 	}
 	GetName, exist := c.Get("GetName")
 	if !exist || GetName == "" {

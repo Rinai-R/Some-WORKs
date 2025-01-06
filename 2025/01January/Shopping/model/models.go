@@ -15,14 +15,14 @@ type User struct {
 }
 
 type Msg struct {
-	Id          string    `json:"id"`
-	Parent_id   string    `json:"parent_id"`
-	Content     string    `json:"content"`
-	User_id     string    `json:"user_id"`
-	Goods_id    string    `json:"goods_id"`
-	Praised_num int       `json:"praised_num"`
-	Create_at   time.Time `json:"create_at"`
-	Updated_at  time.Time `json:"updated_at"`
+	Id          string
+	Parent_id   string `json:"parent_id"`
+	Content     string `json:"content"`
+	User_id     string `json:"user_id"`
+	Goods_id    string `json:"goods_id"`
+	Praised_num int
+	Create_at   time.Time
+	Updated_at  time.Time
 	Response    []Msg
 }
 
@@ -39,10 +39,11 @@ type Goods struct {
 }
 
 type Cart_Goods struct {
-	Goods_Id string  `json:"id"`
-	Number   int     `json:"number"`
-	Price    float64 `json:"price"`
-	User_Id  string  `json:"user_id"`
+	Goods_Id   string `json:"id"`
+	Goods_Name string
+	Number     int     `json:"number"`
+	Price      float64 `json:"price"`
+	User_Id    string  `json:"user_id"`
 }
 
 type Shop struct {
@@ -65,4 +66,10 @@ type Shopping_Cart struct {
 	Id    string `json:"id"`
 	Sum   float64
 	Goods []Cart_Goods
+}
+
+type Lack_Msg struct {
+	Goods_id    string
+	Current_Num int
+	Query_Num   int
 }

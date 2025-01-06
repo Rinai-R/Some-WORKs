@@ -1,15 +1,15 @@
 package model
 
 type Order struct {
-	Id      string        `json:"id"`
-	User_id string        `json:"user_id"`
-	Shop_id string        `json:"shop_id"`
-	Goods   []Order_Goods `json:"goods"`
-	Sum     float64       `json:"sum"`
+	Id      string `json:"order_id"`
+	User_id string
+	Goods   []Order_Goods
+	Sum     float64
 }
 type Order_Goods struct {
-	Goods_Id string  `json:"id"`
-	Number   int     `json:"number"`
-	Price    float64 `json:"price"`
-	Order_id string  `json:"order_id"`
+	Goods_Id   string
+	Goods_Name string
+	Number     int
+	Price      float64
+	Order_id   string
 }

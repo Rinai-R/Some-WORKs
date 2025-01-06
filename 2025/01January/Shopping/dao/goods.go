@@ -50,6 +50,17 @@ func GetShopAndGoodsInfo(shop *model.Shop) bool {
 	return true
 }
 
+func GetGoodsName(id string) string {
+	query := `SELECT goods_name FROM goods WHERE id = ?`
+	var name string
+	err := db.QueryRow(query, id).Scan(&name)
+	if err != nil {
+		log.Println(err)
+		return ""
+	}
+	return name
+}
+
 // AddGoods 向购物车中添加商品
 func AddGoods(username string, goods model.Goods) (string, bool) {
 	id := GetId(username)
@@ -57,8 +68,9 @@ func AddGoods(username string, goods model.Goods) (string, bool) {
 	if num < goods.Number {
 		return "lack", false
 	}
-	query := `insert into cart_goods (user_id, goods_id, number, price) values (?, ?, ?, ?)`
-	_, err1 := db.Exec(query, id, goods.Id, goods.Number, price)
+	goods.Goods_name = GetGoodsName(goods.Id)
+	query := `insert into cart_goods (user_id, goods_id, goods_name, number, price) values (?, ?, ?, ?, ?)`
+	_, err1 := db.Exec(query, id, goods.Id, goods.Goods_name, goods.Number, price)
 	if err1 != nil {
 		log.Println(err1)
 		return err1.Error(), false
@@ -92,7 +104,7 @@ func GetCartInfo(cart *model.Shopping_Cart) bool {
 		log.Println(err)
 		return false
 	}
-	query = `SELECT goods_id, number, price FROM cart_goods WHERE user_id = ?`
+	query = `SELECT goods_id, goods_name ,number, price FROM cart_goods WHERE user_id = ?`
 	Rows, err0 := db.Query(query, cart.Id)
 	if err0 != nil {
 		if errors.Is(err0, sql.ErrNoRows) {
@@ -103,7 +115,7 @@ func GetCartInfo(cart *model.Shopping_Cart) bool {
 	}
 	for Rows.Next() {
 		var cart_goods model.Cart_Goods
-		err = Rows.Scan(&cart_goods.Goods_Id, &cart_goods.Number, &cart_goods.Price)
+		err = Rows.Scan(&cart_goods.Goods_Id, &cart_goods.Goods_Name, &cart_goods.Number, &cart_goods.Price)
 		if err != nil {
 			log.Println(err)
 			return false

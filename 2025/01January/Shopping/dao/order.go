@@ -2,10 +2,8 @@ package dao
 
 import (
 	"Golang/2025/01January/Shopping/model"
-	"fmt"
 	"log"
 	"strconv"
-	"strings"
 )
 
 // SubmitOrder 提交订单，清空购物车
@@ -13,7 +11,7 @@ func SubmitOrder(order *model.Order) bool {
 	//初步向数据库注册订单
 	query := `SELECT sum FROM shopping_cart WHERE user_id = ?`
 	err := db.QueryRow(query, order.User_id).Scan(&order.Sum)
-	if err != nil {
+	if err != nil || order.Sum == 0 {
 		log.Println(err)
 		return false
 	}
@@ -30,7 +28,7 @@ func SubmitOrder(order *model.Order) bool {
 	}
 	order.Id = strconv.FormatInt(id, 10)
 	//给订单添加商品
-	query = `SELECT goods_id, number, price FROM cart_goods WHERE user_id = ?`
+	query = `SELECT goods_id, goods_name, number, price FROM cart_goods WHERE user_id = ?`
 	Rows, err2 := db.Query(query, order.User_id)
 	if err2 != nil {
 		log.Println(err2)
@@ -39,13 +37,13 @@ func SubmitOrder(order *model.Order) bool {
 	for Rows.Next() {
 		var goods model.Order_Goods
 		goods.Order_id = order.Id
-		err = Rows.Scan(&goods.Goods_Id, &goods.Number, &goods.Price)
+		err = Rows.Scan(&goods.Goods_Id, &goods.Goods_Name, &goods.Number, &goods.Price)
 		if err != nil {
 			log.Println(err)
 			return false
 		}
-		query = `INSERT INTO order_goods (id, price, number, order_id) values (?, ?, ?, ?)`
-		_, err = db.Exec(query, &goods.Goods_Id, goods.Price, goods.Number, order.Id)
+		query = `INSERT INTO order_goods (id, goods_name, number, price, order_id) values (?, ?, ?, ?, ?)`
+		_, err = db.Exec(query, goods.Goods_Id, goods.Goods_Name, goods.Number, goods.Price, order.Id)
 		if err != nil {
 			log.Println(err)
 			return false
@@ -55,16 +53,16 @@ func SubmitOrder(order *model.Order) bool {
 	return true
 }
 
-func ConfirmOrder(order model.Order) string {
-	query := `SELECT is_deleted FROM orders WHERE id = ?`
+func ConfirmOrder(order model.Order) ([]model.Lack_Msg, string) {
+	query := `SELECT is_deleted FROM orders WHERE id = ? AND user_id = ?`
 	var st int
-	err := db.QueryRow(query, order.Id).Scan(&st)
+	err := db.QueryRow(query, order.Id, order.User_id).Scan(&st)
 	if err != nil {
 		log.Println(err)
-		return "error"
+		return nil, "error"
 	}
 	if st == 1 {
-		return "deleted"
+		return nil, "deleted"
 	}
 	//查看用户余额是否足够
 	query = `SELECT sum FROM orders WHERE id = ?`
@@ -72,41 +70,44 @@ func ConfirmOrder(order model.Order) string {
 	err = db.QueryRow(query, order.Id).Scan(&sum)
 	if err != nil {
 		log.Println(err)
-		return "error"
+		return nil, "error"
 	}
 	query = `SELECT balance FROM user WHERE id = ?`
 	var balance float64
 	err = db.QueryRow(query, order.User_id).Scan(&balance)
 	if balance < sum {
-		return "lack"
+		return nil, "lack"
 	}
 	//检查商品库存
 	query = `SELECT id, number FROM order_goods WHERE order_id = ?`
 	Rows, err0 := db.Query(query, order.Id)
 	if err0 != nil {
 		log.Println(err0)
-		return "error"
+		return nil, "error"
 	}
-	var LackGoods []string
+	var LackGoods []model.Lack_Msg
 	for Rows.Next() {
-		var id int
+		var id string
 		var num int
 		err = Rows.Scan(&id, &num)
 		if err != nil {
 			log.Println(err)
-			return "error"
+			return nil, "error"
 		}
 		query = `SELECT number FROM goods WHERE id = ?`
 		var shop_num int
 		err = db.QueryRow(query, id).Scan(&shop_num)
 		if shop_num < num {
-			mes := fmt.Sprintf("Lack Goods id : %v, Current number: %v, Query number: %v ", id, shop_num, num)
-			LackGoods = append(LackGoods, mes)
+			LackGoods = append(LackGoods, model.Lack_Msg{
+				Goods_id:    id,
+				Current_Num: shop_num,
+				Query_Num:   num,
+			})
 		}
 	}
 	//如果有缺货的商品，返回缺货商品组成的字符串
-	if LackGoods == nil {
-		return strings.Join(LackGoods, "|")
+	if LackGoods != nil {
+		return LackGoods, "LackGoods"
 	}
 
 	//最后开始执行交易
@@ -115,7 +116,7 @@ func ConfirmOrder(order model.Order) string {
 	Rows, err = db.Query(query, order.Id)
 	if err != nil {
 		log.Println(err)
-		return "error"
+		return nil, "error"
 	}
 	for Rows.Next() {
 		var id int
@@ -124,27 +125,27 @@ func ConfirmOrder(order model.Order) string {
 		err = Rows.Scan(&id, &num, &price)
 		if err != nil {
 			log.Println(err)
-			return "error"
+			return nil, "error"
 		}
 		query = `UPDATE goods SET number = number - ? WHERE id = ?`
 		_, err = db.Exec(query, num, id)
 		if err != nil {
 			log.Println(err)
-			return "error"
+			return nil, "error"
 		}
 		query = `SELECT shop_id FROM goods WHERE id = ?`
 		var shop_id int
 		err = db.QueryRow(query, id).Scan(&shop_id)
 		if err != nil {
 			log.Println(err)
-			return "error"
+			return nil, "error"
 		}
 		all := float64(num) * price
 		query = `UPDATE shop SET profit = profit + ? WHERE id = ?`
 		_, err = db.Exec(query, all, shop_id)
 		if err != nil {
 			log.Println(err)
-			return "error"
+			return nil, "error"
 		}
 	}
 	//清空购物车
@@ -152,26 +153,32 @@ func ConfirmOrder(order model.Order) string {
 	_, err = db.Exec(query, order.User_id)
 	if err != nil {
 		log.Println(err)
-		return "error"
+		return nil, "error"
 	}
 	query = `DELETE FROM cart_goods WHERE user_id = ?`
 	_, err = db.Exec(query, order.User_id)
 	if err != nil {
 		log.Println(err)
-		return "error"
+		return nil, "error"
 	}
 	query = `UPDATE user SET balance = balance - ? WHERE id = ?`
 	_, err = db.Exec(query, sum, order.User_id)
 	if err != nil {
 		log.Println(err)
-		return "error"
+		return nil, "error"
 	}
-	return "ok"
+	query = `UPDATE orders SET is_deleted = 1 WHERE id = ?`
+	_, err = db.Exec(query, order.Id)
+	if err != nil {
+		log.Println(err)
+		return nil, "error"
+	}
+	return nil, "ok"
 }
 
 func CancelOrder(order model.Order) bool {
-	query := `UPDATE orders SET is_deleted = 1 WHERE id = ?`
-	_, err := db.Exec(query, order.Id)
+	query := `UPDATE orders SET is_deleted = 1 WHERE id = ? AND user_id = ?`
+	_, err := db.Exec(query, order.Id, order.User_id)
 	if err != nil {
 		log.Println(err)
 		return false

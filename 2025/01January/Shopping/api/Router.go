@@ -23,7 +23,7 @@ func InitRouter() {
 
 		User.GET("/GetUserInfo", GetUserInfo)
 
-		User.PUT("/Recharge", Recharge)
+		User.PUT("/Recharge", Recharge) //充值采取表单提交
 
 		User.PUT("AlterUserInfo", AlterUserInfo)
 
@@ -40,6 +40,14 @@ func InitRouter() {
 		User.PUT("/Star", Star)
 
 		User.GET("/GetAllStar", GetAllStar)
+
+		User.POST("/PubMsg", Publish)
+
+		User.POST("/SubmitOrder", SubmitOrder)
+
+		User.PUT("/ConfirmOrder", Comfirm)
+
+		User.DELETE("/CancelOrder", CancelOrder)
 	}
 
 	Shop := r.Group("/Shop")

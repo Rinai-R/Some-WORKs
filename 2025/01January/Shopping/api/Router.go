@@ -43,6 +43,12 @@ func InitRouter() {
 
 		User.POST("/PubMsg", Publish)
 
+		User.POST("/Response", Response)
+
+		User.PUT("/Praise", Praise)
+
+		User.GET("/GetGoodsMsg", GetGoodsMsg)
+
 		User.POST("/SubmitOrder", SubmitOrder)
 
 		User.PUT("/ConfirmOrder", Comfirm)

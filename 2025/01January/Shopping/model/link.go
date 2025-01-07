@@ -11,7 +11,7 @@ type Browse struct {
 }
 
 type Praise struct {
-	User_id    string `json:"user_id"`
+	User_id    string
 	Message_id string `json:"message_id"`
 }
 

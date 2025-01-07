@@ -141,8 +141,8 @@ func Praise(praise model.Praise) bool {
 }
 
 func AlterMsg(msg model.Msg) bool {
-	query := `UPDATE msg SET content = ? WHERE id = ?`
-	_, err := db.Exec(query, msg.Content, msg.Id)
+	query := `UPDATE msg SET content = ? WHERE id = ? AND user_id = ?`
+	_, err := db.Exec(query, msg.Content, msg.Id, msg.User_id)
 	if err != nil {
 		log.Println(err)
 		return false
@@ -151,8 +151,8 @@ func AlterMsg(msg model.Msg) bool {
 }
 
 func DelMsg(msg model.Msg) bool {
-	query := `DELETE FROM msg WHERE id = ?`
-	_, err := db.Exec(query, msg.Id)
+	query := `DELETE FROM msg WHERE id = ? AND user_id = ?`
+	_, err := db.Exec(query, msg.Id, msg.User_id)
 	if err != nil {
 		return false
 	}

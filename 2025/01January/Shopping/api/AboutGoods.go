@@ -50,6 +50,32 @@ func GetGoodsInfo(c *gin.Context) {
 	return
 }
 
+func BrowseRecords(c *gin.Context) {
+	var Browse model.Browse
+	GetName, exist := c.Get("GetName")
+	if !exist {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"code": 401,
+			"info": "unauthorized",
+		})
+		return
+	}
+	Browse.User_id = dao.GetId(GetName.(string))
+	if data, ok := dao.BrowseRecords(Browse); ok {
+		c.JSON(http.StatusOK, gin.H{
+			"code": 200,
+			"info": "ok",
+			"data": data,
+		})
+		return
+	}
+	c.JSON(http.StatusUnauthorized, gin.H{
+		"code": 401,
+		"info": "unauthorized",
+	})
+	return
+}
+
 func AddGoodsToCart(c *gin.Context) {
 	var goods model.Goods
 	GetName, exist := c.Get("GetName")

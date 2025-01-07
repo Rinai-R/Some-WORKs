@@ -153,13 +153,43 @@ func BrowseGoods(goods *model.Goods, Browse model.Browse) bool {
 		log.Println(err0)
 		return false
 	}
-	query := `INSERT INTO browse_records (user_id, goods_id) values(?, ?) `
-	_, err := db.Exec(query, Browse.User_id, Browse.Goods_id)
+	query := `INSERT INTO browse_records (user_id, goods_id, goods_name, avatar) values(?, ?, ?, ?) `
+	_, err := db.Exec(query, Browse.User_id, Browse.Goods_id, goods.Goods_name, goods.Avatar)
 	if err != nil {
 		log.Println(err)
 		return false
 	}
 	return true
+}
+
+func BrowseRecords(Browse model.Browse) ([]model.Browse, bool) {
+	query := `SELECT id, user_id, goods_id, goods_name, avatar, browse_time FROM browse_records WHERE user_id = ?`
+	rows, err := db.Query(query, Browse.User_id)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, true
+		}
+		log.Println(err)
+		return nil, false
+	}
+	defer func(rows *sql.Rows) {
+		err := rows.Close()
+		if err != nil {
+			log.Println(err)
+		}
+	}(rows)
+	var records []model.Browse
+	for rows.Next() {
+		var browse model.Browse
+		err = rows.Scan(&browse.Id, &browse.User_id, &browse.Goods_id, &browse.Goods_name, &browse.Avatar, &browse.BrowseTime)
+		if err != nil {
+			log.Println(err)
+			return nil, false
+		}
+		records = append(records, browse)
+	}
+	return records, true
+
 }
 
 func StarGoods(star model.Star) bool {

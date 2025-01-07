@@ -31,6 +31,8 @@ func InitRouter() {
 
 		User.GET("/BrowseGoods", GetGoodsInfo)
 
+		User.GET("/BrowseRecords", BrowseRecords)
+
 		User.POST("/AddGoodsToCart", AddGoodsToCart)
 
 		User.DELETE("/DelGoodsFromCart", DelGoodsFromCart)
@@ -48,6 +50,10 @@ func InitRouter() {
 		User.PUT("/Praise", Praise)
 
 		User.GET("/GetGoodsMsg", GetGoodsMsg)
+
+		User.PUT("/AlterMsg", AlterMsg)
+
+		User.DELETE("/DelMsg", DeleteMsg)
 
 		User.POST("/SubmitOrder", SubmitOrder)
 

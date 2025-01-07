@@ -137,3 +137,69 @@ func GetGoodsMsg(c *gin.Context) {
 	})
 	return
 }
+
+func AlterMsg(c *gin.Context) {
+	var msg model.Msg
+	err := c.BindJSON(&msg)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code": 500,
+			"info": "error " + err.Error(),
+		})
+		return
+	}
+	GetName, exist := c.Get("GetName")
+	if !exist || dao.Exist(GetName.(string)) != "exists" {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"code": 401,
+			"info": "unauthorized",
+		})
+		return
+	}
+	msg.User_id = dao.GetId(GetName.(string))
+	if !dao.AlterMsg(msg) {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code": 500,
+			"info": "error",
+		})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"code": 200,
+		"info": "ok",
+	})
+	return
+}
+
+func DeleteMsg(c *gin.Context) {
+	var msg model.Msg
+	err := c.BindJSON(&msg)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code": 500,
+			"info": "error " + err.Error(),
+		})
+		return
+	}
+	GetName, exist := c.Get("GetName")
+	if !exist || dao.Exist(GetName.(string)) != "exists" {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"code": 401,
+			"info": "unauthorized",
+		})
+		return
+	}
+	msg.User_id = dao.GetId(GetName.(string))
+	if !dao.DelMsg(msg) {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code": 500,
+			"info": "error",
+		})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"code": 200,
+		"info": "ok",
+	})
+	return
+}

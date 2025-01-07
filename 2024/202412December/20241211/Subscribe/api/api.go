@@ -1,7 +1,7 @@
 package api
 
 import (
-	"Golang/12December/20241211/Subscribe/dao"
+	"Golang/2024/202412December/20241211/Subscribe/dao"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"

@@ -3,9 +3,11 @@ package dao
 import (
 	"Golang/2025/01January/Shopping/model"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"log"
 	"strconv"
+	"time"
 )
 
 func GetGoodInfo(goods_id string) (int, float64) {
@@ -147,18 +149,38 @@ func DelCartGoods(cart_goods model.Cart_Goods) bool {
 }
 
 func BrowseGoods(goods *model.Goods, Browse model.Browse) bool {
-	query0 := `SELECT id, goods_name, shop_id, type, number, price, star, content, avatar FROM goods WHERE id = ?`
-	err0 := db.QueryRow(query0, Browse.Goods_id).Scan(&goods.Id, &goods.Goods_name, &goods.Shop_id, &goods.Type, &goods.Number, &goods.Price, &goods.Star, &goods.Content, &goods.Avatar)
-	if err0 != nil {
-		log.Println(err0)
-		return false
+	CacheKey := "goods:" + Browse.Goods_id
+
+	CacheData, err := rdb.Get(ctx, CacheKey).Result()
+	if err == nil {
+		if err = json.Unmarshal([]byte(CacheData), &goods); err == nil {
+			query := `INSERT INTO browse_records (user_id, goods_id, goods_name, avatar) values(?, ?, ?, ?) `
+			_, err = db.Exec(query, Browse.User_id, Browse.Goods_id, goods.Goods_name, goods.Avatar)
+			if err == nil {
+				log.Println("成功缓存")
+				return true
+			}
+		}
 	}
-	query := `INSERT INTO browse_records (user_id, goods_id, goods_name, avatar) values(?, ?, ?, ?) `
-	_, err := db.Exec(query, Browse.User_id, Browse.Goods_id, goods.Goods_name, goods.Avatar)
+	query := `SELECT id, goods_name, shop_id, type, number, price, star, content, avatar FROM goods WHERE id = ?`
+	err = db.QueryRow(query, Browse.Goods_id).Scan(&goods.Id, &goods.Goods_name, &goods.Shop_id, &goods.Type, &goods.Number, &goods.Price, &goods.Star, &goods.Content, &goods.Avatar)
 	if err != nil {
 		log.Println(err)
 		return false
 	}
+	CachedData, err := json.Marshal(goods)
+	if err != nil {
+		log.Println(err)
+		return false
+	}
+	rdb.Set(ctx, CacheKey, CachedData, time.Hour)
+	query = `INSERT INTO browse_records (user_id, goods_id, goods_name, avatar) values(?, ?, ?, ?) `
+	_, err = db.Exec(query, Browse.User_id, Browse.Goods_id, goods.Goods_name, goods.Avatar)
+	if err != nil {
+		log.Println(err)
+		return false
+	}
+	log.Println("通过MySQL得到数据")
 	return true
 }
 

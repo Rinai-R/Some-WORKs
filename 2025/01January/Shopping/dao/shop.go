@@ -3,8 +3,10 @@ package dao
 import (
 	"Golang/2025/01January/Shopping/model"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"log"
+	"time"
 )
 
 func ShopExist(shop model.Shop) bool {
@@ -129,6 +131,11 @@ func AlterGoodsInfo(goods model.Goods) bool {
 			return false
 		}
 	}
+	//更新redis缓存的数据
+	CacheKey := "goods:" + goods.Id
+	CacheData, _ := json.Marshal(goods)
+	rdb.Set(ctx, CacheKey, CacheData, time.Hour)
+
 	return true
 }
 
@@ -147,5 +154,7 @@ func DeleteGoods(goods model.Goods) bool {
 	if aff == 0 {
 		return false
 	}
+	CacheKey := "goods:" + goods.Id
+	rdb.Del(ctx, CacheKey)
 	return true
 }

@@ -3,9 +3,11 @@ package dao
 import (
 	"Golang/2025/01January/Shopping/model"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	_ "github.com/go-sql-driver/mysql"
 	"log"
+	"time"
 )
 
 // Exist 验证用户名或者该用户是否存在
@@ -75,12 +77,29 @@ func GetId(username string) string {
 }
 
 func GetUserInfo(user *model.User) bool {
+	CacheKey := "user:" + user.Username
+	if CacheData, err := rdb.Get(ctx, CacheKey).Result(); err == nil {
+		if err := json.Unmarshal([]byte(CacheData), &user); err == nil {
+			rdb.Set(ctx, CacheKey, user.Username, time.Hour)
+			log.Println("redis缓存读取")
+			return true
+		}
+	}
+
 	query := `SELECT id, username, password, balance, avatar, nickname, bio FROM user WHERE username = ?`
 	err := db.QueryRow(query, user.Username).Scan(&user.Id, &user.Username, &user.Password, &user.Balance, &user.Avatar, &user.Nickname, &user.Bio)
 	if err != nil {
 		log.Println(err)
 		return false
 	}
+
+	CacheData, err0 := json.Marshal(user)
+	if err0 != nil {
+		log.Println(err0)
+		return false
+	}
+	rdb.Set(ctx, CacheKey, string(CacheData), time.Hour)
+
 	return true
 }
 
@@ -91,6 +110,28 @@ func Recharge(money float64, username string) bool {
 		log.Println(err)
 		return false
 	}
+
+	CacheKey := "user:" + username
+	if CacheData, err := rdb.Get(ctx, CacheKey).Result(); err == nil {
+		query = `SELECT balance FROM user WHERE username = ?`
+		var balance float64
+		err := db.QueryRow(query, username).Scan(&balance)
+		if err != nil {
+			log.Println(err)
+			return false
+		}
+		var Info model.User
+		if err = json.Unmarshal([]byte(CacheData), &Info); err == nil {
+			Info.Balance = balance
+			cachedata, err := json.Marshal(Info)
+			if err != nil {
+				log.Println(err)
+				return false
+			}
+			rdb.Set(ctx, CacheKey, cachedata, time.Hour)
+		}
+	}
+
 	return true
 }
 
@@ -130,6 +171,31 @@ func AlterUserInfo(NewInfo model.User, username string) bool {
 			return false
 		}
 	}
+	//redis缓存库的更新，保证数据一致性
+	CacheKey := "user:" + username
+	if CacheData, err := rdb.Get(ctx, CacheKey).Result(); err == nil {
+		var New model.User
+		if json.Unmarshal([]byte(CacheData), &New) == nil {
+			if NewInfo.Nickname != "" {
+				New.Nickname = NewInfo.Nickname
+			}
+			if NewInfo.Avatar != "" {
+				New.Avatar = NewInfo.Avatar
+			}
+			if NewInfo.Bio != "" {
+				New.Bio = NewInfo.Bio
+			}
+			if NewInfo.Password != "" {
+				New.Password = NewInfo.Password
+			}
+			cacheData, err := json.Marshal(New)
+			if err != nil {
+				log.Println(err)
+				return false
+			}
+			rdb.Set(ctx, CacheKey, cacheData, time.Hour)
+		}
+	}
 	return true
 }
 
@@ -140,5 +206,7 @@ func DelUser(username string) bool {
 		log.Println(err)
 		return false
 	}
+	CacheKey := "user:" + username
+	rdb.Del(ctx, CacheKey)
 	return true
 }

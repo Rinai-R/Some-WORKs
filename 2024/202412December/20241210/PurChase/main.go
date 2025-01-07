@@ -1,7 +1,7 @@
 package main
 
 import (
-	"Golang/12December/20241210/PurChase/dao"
+	"Golang/2024/202412December/20241210/PurChase/dao"
 	"context"
 	"github.com/redis/go-redis/v9"
 	"sync"

@@ -3,6 +3,7 @@ package api
 import (
 	"Golang/2025/01January/Shopping/dao"
 	"Golang/2025/01January/Shopping/model"
+	"Golang/2025/01January/Shopping/utils"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
@@ -12,18 +13,12 @@ func GetGoodsInfo(c *gin.Context) {
 	var Browse model.Browse
 	err := c.BindJSON(&Browse)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"code": 500,
-			"info": "error " + err.Error(),
-		})
+		c.JSON(http.StatusInternalServerError, utils.ErrRsp(err))
 		return
 	}
 	GetName, exist := c.Get("GetName")
 	if !exist {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"code": 401,
-			"info": "unauthorized",
-		})
+		c.JSON(http.StatusUnauthorized, utils.UnAuthorized())
 		return
 	}
 	username := GetName.(string)
@@ -36,10 +31,7 @@ func GetGoodsInfo(c *gin.Context) {
 	}
 	Browse.User_id = dao.GetId(username)
 	if !dao.BrowseGoods(&goods, Browse) {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"code": 500,
-			"info": "error",
-		})
+		c.JSON(http.StatusInternalServerError, utils.ErrRsp(nil))
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{
@@ -54,10 +46,7 @@ func BrowseRecords(c *gin.Context) {
 	var Browse model.Browse
 	GetName, exist := c.Get("GetName")
 	if !exist {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"code": 401,
-			"info": "unauthorized",
-		})
+		c.JSON(http.StatusUnauthorized, utils.UnAuthorized())
 		return
 	}
 	Browse.User_id = dao.GetId(GetName.(string))
@@ -80,10 +69,7 @@ func AddGoodsToCart(c *gin.Context) {
 	var goods model.Goods
 	GetName, exist := c.Get("GetName")
 	if !exist {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"code": 401,
-			"info": "unauthorized",
-		})
+		c.JSON(http.StatusUnauthorized, utils.UnAuthorized())
 		return
 	}
 	err := c.BindJSON(&goods)
@@ -120,10 +106,7 @@ func AddGoodsToCart(c *gin.Context) {
 func DelGoodsFromCart(c *gin.Context) {
 	GetName, exist := c.Get("GetName")
 	if !exist {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"code": 401,
-			"info": "unauthorized",
-		})
+		c.JSON(http.StatusUnauthorized, utils.UnAuthorized())
 		return
 	}
 	var cart_goods model.Cart_Goods
@@ -163,10 +146,7 @@ func GetCartGoods(c *gin.Context) {
 	var cart model.Shopping_Cart
 	GetName, exist := c.Get("GetName")
 	if !exist {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"code": 401,
-			"info": "unauthorized",
-		})
+		c.JSON(http.StatusUnauthorized, utils.UnAuthorized())
 		return
 	}
 	cart.Id = dao.GetId(GetName.(string))
@@ -222,10 +202,7 @@ func Star(c *gin.Context) {
 	}
 	GetName, exist := c.Get("GetName")
 	if !exist {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"code": 401,
-			"info": "unauthorized",
-		})
+		c.JSON(http.StatusUnauthorized, utils.UnAuthorized())
 		return
 	}
 	star.User_id = dao.GetId(GetName.(string))
@@ -236,19 +213,14 @@ func Star(c *gin.Context) {
 		})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{
-		"code": 200,
-		"info": "ok",
-	})
+	c.JSON(http.StatusOK, utils.OK())
 	return
 }
 
 func GetAllStar(c *gin.Context) {
 	GetName, exist := c.Get("GetName")
 	if !exist {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"code": 401,
-			"info": "unauthorized"})
+		c.JSON(http.StatusUnauthorized, utils.UnAuthorized())
 		return
 	}
 	var user model.User

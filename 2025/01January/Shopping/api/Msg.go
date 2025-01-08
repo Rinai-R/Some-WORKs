@@ -3,6 +3,7 @@ package api
 import (
 	"Golang/2025/01January/Shopping/dao"
 	"Golang/2025/01January/Shopping/model"
+	"Golang/2025/01January/Shopping/utils"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
@@ -109,18 +110,12 @@ func GetGoodsMsg(c *gin.Context) {
 	var goods model.Goods
 	err := c.BindJSON(&goods)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"code": 500,
-			"info": "error " + err.Error(),
-		})
+		c.JSON(http.StatusInternalServerError, utils.ErrRsp(err))
 		return
 	}
 	GetName, exist := c.Get("GetName")
 	if !exist || dao.Exist(GetName.(string)) != "exists" {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"code": 401,
-			"info": "unauthorized",
-		})
+		c.JSON(http.StatusUnauthorized, utils.UnAuthorized())
 		return
 	}
 	if data := dao.GetGoodsMsg(goods); data != nil {

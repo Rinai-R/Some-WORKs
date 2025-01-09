@@ -1,19 +1,17 @@
 package api
 
 import (
-	"Golang/2025/01January/Shopping/dao"
 	"Golang/2025/01January/Shopping/model"
+	"Golang/2025/01January/Shopping/service"
 	"Golang/2025/01January/Shopping/utils"
-	"errors"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
 
 // GetGoodsInfo 获取商品详情，只需要token
 func GetGoodsInfo(c *gin.Context) {
-	var goods model.Goods
-	var Browse model.Browse
-	err := c.BindJSON(&Browse)
+	var browse model.Browse
+	err := c.BindJSON(&browse)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, utils.ErrRsp(err))
 		return
@@ -24,16 +22,10 @@ func GetGoodsInfo(c *gin.Context) {
 		return
 	}
 	username := GetName.(string)
-	if dao.Exist(username) != "exists" {
-		c.JSON(http.StatusNotAcceptable, gin.H{
-			"code": 406,
-			"info": "user error",
-		})
-		return
-	}
-	Browse.User_id = dao.GetId(username)
-	if !dao.BrowseGoods(&goods, Browse) {
-		c.JSON(http.StatusInternalServerError, utils.ErrRsp(nil))
+
+	goods, err := service.GetGoodsInfo(username, browse)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, utils.ErrRsp(err))
 		return
 	}
 	c.JSON(http.StatusOK, utils.OkWithData(goods))
@@ -42,19 +34,20 @@ func GetGoodsInfo(c *gin.Context) {
 
 // BrowseRecords 浏览商品的记录只需要token
 func BrowseRecords(c *gin.Context) {
-	var Browse model.Browse
 	GetName, exist := c.Get("GetName")
 	if !exist {
 		c.JSON(http.StatusUnauthorized, utils.UnAuthorized())
 		return
 	}
-	Browse.User_id = dao.GetId(GetName.(string))
-	if data, ok := dao.BrowseRecords(Browse); ok {
-		c.JSON(http.StatusOK, utils.OkWithData(data))
+	username := GetName.(string)
+
+	if records, err := service.BrowseRecords(username); err != nil {
+		c.JSON(http.StatusInternalServerError, utils.ErrRsp(err))
+		return
+	} else {
+		c.JSON(http.StatusOK, utils.OkWithData(records))
 		return
 	}
-	c.JSON(http.StatusUnauthorized, utils.UnAuthorized())
-	return
 }
 
 // AddGoodsToCart 增加商品到购物车中，需要token以及商品id
@@ -71,16 +64,9 @@ func AddGoodsToCart(c *gin.Context) {
 		return
 	}
 	username := GetName.(string)
-	//应对当token未过期，但用户已经删除的情况
-	if dao.Exist(username) != "exists" {
-		c.JSON(http.StatusNotAcceptable, gin.H{
-			"code": 406,
-			"info": "user error",
-		})
-		return
-	}
-	if mes, ok := dao.AddGoods(username, goods); !ok {
-		c.JSON(http.StatusInternalServerError, utils.ErrRsp(errors.New(mes)))
+
+	if err := service.AddGoodsToCart(username, goods); err != nil {
+		c.JSON(http.StatusInternalServerError, utils.ErrRsp(err))
 		return
 	}
 	c.JSON(http.StatusOK, utils.OK())
@@ -102,34 +88,30 @@ func DelGoodsFromCart(c *gin.Context) {
 	}
 
 	username := GetName.(string)
-	if dao.Exist(username) != "exists" || cart_goods.Goods_Id == "" {
-		c.JSON(http.StatusNotAcceptable, utils.Refused("query error"))
+	if err := service.DelGoodsFromCart(username, cart_goods); err != nil {
+		c.JSON(http.StatusInternalServerError, utils.ErrRsp(err))
 		return
 	}
-	cart_goods.User_Id = dao.GetId(username)
-	if dao.DelCartGoods(cart_goods) {
-		c.JSON(http.StatusOK, utils.OK())
-		return
-	}
-	c.JSON(http.StatusInternalServerError, utils.ErrRsp(errors.New("delete cart goods fail")))
+	c.JSON(http.StatusOK, utils.OK())
 	return
 }
 
 // GetCartGoods 获取购物车中的商品，只需要token
 func GetCartGoods(c *gin.Context) {
-	var cart model.Shopping_Cart
 	GetName, exist := c.Get("GetName")
 	if !exist {
 		c.JSON(http.StatusUnauthorized, utils.UnAuthorized())
 		return
 	}
-	cart.Id = dao.GetId(GetName.(string))
-	if cart.Id == "" || !dao.GetCartInfo(&cart) {
-		c.JSON(http.StatusInternalServerError, utils.ErrRsp(nil))
+	username := GetName.(string)
+
+	if cart, err := service.GetCartInfo(username); err != nil {
+		c.JSON(http.StatusInternalServerError, utils.ErrRsp(err))
+		return
+	} else {
+		c.JSON(http.StatusOK, utils.OkWithData(cart))
 		return
 	}
-	c.JSON(http.StatusOK, utils.OkWithData(cart))
-	return
 }
 
 // SearchType 根据类型查找商品，需要包含type字段
@@ -140,14 +122,17 @@ func SearchType(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, utils.ErrRsp(err))
 		return
 	}
-	if data, ok := dao.SearchTypeGoods(&goods); ok {
+
+	if data, err := service.SearchTypeGoods(goods); err != nil {
+		c.JSON(http.StatusInternalServerError, utils.ErrRsp(err))
+		return
+	} else {
 		c.JSON(http.StatusOK, utils.OkWithData(data))
 		return
 	}
-	c.JSON(http.StatusInternalServerError, utils.ErrRsp(errors.New("search type fail")))
-	return
 }
 
+// Star 收藏商品
 func Star(c *gin.Context) {
 	var star model.Star
 	err := c.BindJSON(&star)
@@ -160,31 +145,35 @@ func Star(c *gin.Context) {
 		c.JSON(http.StatusUnauthorized, utils.UnAuthorized())
 		return
 	}
-	star.User_id = dao.GetId(GetName.(string))
-	if !dao.StarGoods(star) {
-		c.JSON(http.StatusInternalServerError, utils.ErrRsp(nil))
+	username := GetName.(string)
+
+	if err := service.StarGoods(username, star); err != nil {
+		c.JSON(http.StatusInternalServerError, utils.ErrRsp(err))
 		return
 	}
 	c.JSON(http.StatusOK, utils.OK())
 	return
 }
 
+// GetAllStar 获取收藏的所有商品
 func GetAllStar(c *gin.Context) {
 	GetName, exist := c.Get("GetName")
 	if !exist {
 		c.JSON(http.StatusUnauthorized, utils.UnAuthorized())
 		return
 	}
-	var user model.User
-	user.Id = dao.GetId(GetName.(string))
-	if goods, ok := dao.GetAllStar(user); ok {
+	username := GetName.(string)
+
+	if goods, err := service.GetAllStar(username); err != nil {
+		c.JSON(http.StatusInternalServerError, utils.ErrRsp(err))
+		return
+	} else {
 		c.JSON(http.StatusOK, utils.OkWithData(goods))
 		return
 	}
-	c.JSON(http.StatusInternalServerError, utils.ErrRsp(nil))
-	return
 }
 
+// SearchGoods 搜索商品功能
 func SearchGoods(c *gin.Context) {
 	var search model.Search
 	err := c.BindJSON(&search)
@@ -192,10 +181,12 @@ func SearchGoods(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, utils.ErrRsp(err))
 		return
 	}
-	if lists := dao.SearchGoods(search); lists != nil {
+
+	if lists, err := service.SearchGoods(search); err != nil {
+		c.JSON(http.StatusInternalServerError, utils.ErrRsp(err))
+		return
+	} else {
 		c.JSON(http.StatusOK, utils.OkWithData(lists))
 		return
 	}
-	c.JSON(http.StatusInternalServerError, utils.ErrRsp(errors.New("search fail")))
-	return
 }

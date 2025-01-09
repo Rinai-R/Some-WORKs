@@ -59,20 +59,20 @@ func InitRouter() {
 
 		User.POST("/SubmitOrder", api.SubmitOrder)
 
-		User.PUT("/ConfirmOrder", api.Comfirm)
+		User.PUT("/ConfirmOrder", api.Confirm)
 
 		User.DELETE("/CancelOrder", api.CancelOrder)
 	}
 
 	Shop := r.Group("/Shop")
 	{
-		Shop.POST("/RegisterMall", api.RegitserMall)
+		Shop.POST("/RegisterMall", api.RegisterMall)
 
 		Shop.GET("/LoginMall", api.LoginMall)
 
 		Shop.Use(Middleware.ShopMiddleware())
 
-		Shop.POST("/RegisterGoods", api.RegitserGoods)
+		Shop.POST("/RegisterGoods", api.RegisterGoods)
 
 		Shop.PUT("/AlterGoodsInfo", api.AlterGoodsInfo)
 

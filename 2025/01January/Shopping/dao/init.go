@@ -12,7 +12,7 @@ var ctx = context.Background()
 var rdb *redis.Client
 
 func init() {
-	db, err = sql.Open("mysql", "root:@tcp(127.0.0.1:3306)/shopping?parseTime=True&loc=UTC")
+	db, err = sql.Open("mysql", "root:~Cy710822@tcp(127.0.0.1:3306)/shopping?parseTime=True&loc=UTC")
 	if err != nil {
 		panic(err)
 	}

@@ -74,7 +74,7 @@ func Praise(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, utils.ErrRsp(nil))
 		return
 	}
-	c.JSON(http.StatusOK,utils.OK())
+	c.JSON(http.StatusOK, utils.OK())
 	return
 }
 
@@ -99,7 +99,7 @@ func GetGoodsMsg(c *gin.Context) {
 	return
 }
 
-// AlterMsg 修改自己的评论内容，需要token和content
+// AlterMsg 修改自己的评论内容，需要token和content，id
 func AlterMsg(c *gin.Context) {
 	var msg model.Msg
 	err := c.BindJSON(&msg)

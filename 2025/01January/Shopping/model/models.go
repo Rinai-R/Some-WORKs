@@ -15,7 +15,7 @@ type User struct {
 }
 
 type Msg struct {
-	Id          string
+	Id          string `json:"id"`
 	Parent_id   string `json:"parent_id"`
 	Content     string `json:"content"`
 	User_id     string `json:"user_id"`

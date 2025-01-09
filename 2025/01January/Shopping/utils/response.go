@@ -4,7 +4,7 @@ import "Golang/2025/01January/Shopping/model"
 
 const (
 	//ok
-	statusOK = 200
+	statusOK = 10000
 	//未授权或者授权错误
 	statusUnauthorized = 40001
 	//内部出现问题，包括但不限于绑定错误，未找到用户，未找到商品
@@ -62,7 +62,7 @@ func LackGoods(lack interface{}) model.ResponseData {
 	return model.ResponseData{
 		Status: statusLackGoods,
 		Info:   "LackGoods",
-		Data: lack,
+		Data:   lack,
 	}
 }
 

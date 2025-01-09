@@ -11,19 +11,13 @@ func UserMiddleware() gin.HandlerFunc {
 		TokenString := c.GetHeader("Authorization")
 
 		if TokenString == "" {
-			c.JSON(http.StatusUnauthorized, gin.H{
-				"code":    401,
-				"message": "token null",
-			})
+			c.JSON(http.StatusUnauthorized, utils.UnAuthorized())
 			c.Abort()
 			return
 		}
 		GetName, err := utils.VerifyUserJWT(TokenString)
 		if err != nil || GetName == "" {
-			c.JSON(http.StatusUnauthorized, gin.H{
-				"code":    401,
-				"message": "token error " + err.Error(),
-			})
+			c.JSON(http.StatusUnauthorized, utils.UnAuthorized())
 			c.Abort()
 			return
 		}
@@ -36,19 +30,13 @@ func ShopMiddleware() gin.HandlerFunc {
 		TokenString := c.GetHeader("Authorization")
 
 		if TokenString == "" {
-			c.JSON(http.StatusUnauthorized, gin.H{
-				"code":    401,
-				"message": "token null",
-			})
+			c.JSON(http.StatusUnauthorized,utils.UnAuthorized())
 			c.Abort()
 			return
 		}
 		GetName, err := utils.VerifyShopJWT(TokenString)
 		if err != nil || GetName == "" {
-			c.JSON(http.StatusUnauthorized, gin.H{
-				"code":    401,
-				"message": "token error " + err.Error(),
-			})
+			c.JSON(http.StatusUnauthorized, utils.UnAuthorized())
 			c.Abort()
 			return
 		}

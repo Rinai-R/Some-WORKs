@@ -20,12 +20,12 @@ func InitRouter() {
 		User.POST("/Register", api.Register)
 
 		User.GET("/Login", api.Login)
-		//需要身份验证
+
 		User.Use(Middleware.UserMiddleware())
 
 		User.GET("/GetUserInfo", api.GetUserInfo)
 
-		User.PUT("/Recharge", api.Recharge) //充值采取表单提交
+		User.PUT("/Recharge", api.Recharge)
 
 		User.PUT("AlterUserInfo", api.AlterUserInfo)
 
@@ -73,7 +73,7 @@ func InitRouter() {
 		Shop.Use(Middleware.ShopMiddleware())
 
 		Shop.POST("/RegisterGoods", api.RegitserGoods)
-		//注意此处提交的信息，必须全部和原信息不一样
+
 		Shop.PUT("/AlterGoodsInfo", api.AlterGoodsInfo)
 
 		Shop.DELETE("/DelGoods", api.DelGoods)

@@ -11,9 +11,9 @@ func main() {
 	client := resty.New()
 
 	// 假设在其他地方已经获取到的 session、courseId 和 rollCallId
-	session := "V2-1-f4cdc3f9-ccdc-4c5e-9fa3-371790d416d1.MjUwMzkw.1736414413594.Zblq0VXc8qk61sTXqugvej0by4k"
-	courseId := "your_course_id"     // 课程 ID
-	rollCallId := "your_rollcall_id" // 签到 ID
+	session := "V2-1-16ba44bf-c23b-4aba-8d3a-1b5fe30449b1.MjUwMzkw.1736489136563.bQdiHJM-INErvg831CGWoUPAtag"
+	courseId := "64102"    // 课程 ID
+	rollCallId := "331981" // 签到 ID
 
 	// 1. 获取当前正在签到的课程
 	headers1 := map[string]string{

@@ -53,6 +53,7 @@ func SubmitOrder(order *model.Order) bool {
 	return true
 }
 
+// ConfirmOrder 确认订单，直接缴费
 func ConfirmOrder(order model.Order) ([]model.Lack_Msg, string) {
 	query := `SELECT is_deleted FROM orders WHERE id = ? AND user_id = ?`
 	var st int
@@ -176,6 +177,7 @@ func ConfirmOrder(order model.Order) ([]model.Lack_Msg, string) {
 	return nil, "ok"
 }
 
+// CancelOrder 取消订单，设置delete字段，数据库中不删除，只是无法再操作该订单。
 func CancelOrder(order model.Order) bool {
 	query := `UPDATE orders SET is_deleted = 1 WHERE id = ? AND user_id = ?`
 	_, err := db.Exec(query, order.Id, order.User_id)

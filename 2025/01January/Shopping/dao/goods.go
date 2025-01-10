@@ -29,7 +29,7 @@ func GetShopAndGoodsInfo(shop *model.Shop) bool {
 		log.Println(err)
 		return false
 	}
-	var goods []model.DisplayGoods
+	var goods []model.DisplayGoods//利用切片存储多个商品内容，方便返回
 	query = `SELECT goods_name, type, price, star, avatar FROM goods WHERE shop_id = ?`
 	Rows, err0 := db.Query(query, shop.Id)
 	if err0 != nil {
@@ -77,6 +77,7 @@ func AddGoods(username string, goods model.Goods) (string, bool) {
 		log.Println(err1)
 		return err1.Error(), false
 	}
+	//更新购物车中的总价格
 	query = `update shopping_cart set sum = sum + ? where user_id = ?`
 	sum := float64(goods.Number) * price
 	_, err2 := db.Exec(query, sum, id)
@@ -87,6 +88,7 @@ func AddGoods(username string, goods model.Goods) (string, bool) {
 	return "", true
 }
 
+// GetCartGoodsInfo 查询购物车中某个物品的价格和数量
 func GetCartGoodsInfo(cart_goods model.Cart_Goods) (int, float64) {
 	query := `SELECT number, price FROM cart_goods WHERE user_id = ? AND goods_id = ?`
 	var num int
@@ -99,6 +101,7 @@ func GetCartGoodsInfo(cart_goods model.Cart_Goods) (int, float64) {
 	return num, price
 }
 
+// GetCartInfo 传入指针，无需再创建变量，直接使用传入的参数即可
 func GetCartInfo(cart *model.Shopping_Cart) bool {
 	query := `SELECT sum FROM shopping_cart WHERE user_id = ?`
 	err := db.QueryRow(query, cart.Id).Scan(&cart.Sum)
@@ -122,6 +125,7 @@ func GetCartInfo(cart *model.Shopping_Cart) bool {
 			log.Println(err)
 			return false
 		}
+		//切片存储商品信息
 		cart.Goods = append(cart.Goods, cart_goods)
 	}
 	return true
@@ -133,12 +137,14 @@ func DelCartGoods(cart_goods model.Cart_Goods) bool {
 		return false
 	}
 	total := float64(num) * price
+	//更新购物车的总价格
 	query := `UPDATE shopping_cart SET sum = sum - ? WHERE user_id = ?`
 	_, err := db.Exec(query, total, cart_goods.User_Id)
 	if err != nil {
 		log.Println(err)
 		return false
 	}
+	//删
 	query = `DELETE FROM cart_goods WHERE user_id = ? AND goods_id = ?`
 	_, err = db.Exec(query, cart_goods.User_Id, cart_goods.Goods_Id)
 	if err != nil {
@@ -148,9 +154,10 @@ func DelCartGoods(cart_goods model.Cart_Goods) bool {
 	return true
 }
 
+// BrowseGoods 浏览商品详细信息
 func BrowseGoods(goods *model.Goods, Browse model.Browse) bool {
+	//先查询redis缓存的数据
 	CacheKey := "goods:" + Browse.Goods_id
-
 	CacheData, err := rdb.Get(ctx, CacheKey).Result()
 	if err == nil {
 		if err = json.Unmarshal([]byte(CacheData), &goods); err == nil {
@@ -162,6 +169,7 @@ func BrowseGoods(goods *model.Goods, Browse model.Browse) bool {
 			}
 		}
 	}
+	//没查询到，查mysql数据库
 	query := `SELECT id, goods_name, shop_id, type, number, price, star, content, avatar FROM goods WHERE id = ?`
 	err = db.QueryRow(query, Browse.Goods_id).Scan(&goods.Id, &goods.Goods_name, &goods.Shop_id, &goods.Type, &goods.Number, &goods.Price, &goods.Star, &goods.Content, &goods.Avatar)
 	if err != nil {
@@ -173,7 +181,9 @@ func BrowseGoods(goods *model.Goods, Browse model.Browse) bool {
 		log.Println(err)
 		return false
 	}
+	//将查询的拘束存入redis，并设置过期时间
 	rdb.Set(ctx, CacheKey, CachedData, time.Hour)
+	//注册浏览记录，便于查询
 	query = `INSERT INTO browse_records (user_id, goods_id, goods_name, avatar) values(?, ?, ?, ?) `
 	_, err = db.Exec(query, Browse.User_id, Browse.Goods_id, goods.Goods_name, goods.Avatar)
 	if err != nil {
@@ -183,7 +193,7 @@ func BrowseGoods(goods *model.Goods, Browse model.Browse) bool {
 	log.Println("通过MySQL得到数据")
 	return true
 }
-
+//浏览记录
 func BrowseRecords(Browse model.Browse) ([]model.Browse, bool) {
 	query := `SELECT id, user_id, goods_id, goods_name, avatar, browse_time FROM browse_records WHERE user_id = ? ORDER BY browse_time DESC`
 	rows, err := db.Query(query, Browse.User_id)
@@ -208,12 +218,14 @@ func BrowseRecords(Browse model.Browse) ([]model.Browse, bool) {
 			log.Println(err)
 			return nil, false
 		}
+		//切片存储多条记录
 		records = append(records, browse)
 	}
 	return records, true
 
 }
 
+// StarGoods 收藏商品
 func StarGoods(star model.Star) bool {
 	query := `SELECT 1 FROM star WHERE user_id = ? AND goods_id = ?`
 	var exist bool
@@ -252,6 +264,7 @@ func StarGoods(star model.Star) bool {
 	return true
 }
 
+// GetAllStar 查询收藏的商品
 func GetAllStar(user model.User) ([]model.DisplayGoods, bool) {
 	var ans []model.DisplayGoods
 	query := `SELECT goods_id FROM star WHERE user_id = ?`
@@ -282,6 +295,7 @@ func GetAllStar(user model.User) ([]model.DisplayGoods, bool) {
 	return ans, true
 }
 
+// SearchTypeGoods 根据类型查询商品
 func SearchTypeGoods(goods *model.DisplayGoods) ([]model.DisplayGoods, bool) {
 	query := `SELECT goods_name, type, price, star, avatar  FROM goods WHERE type = ? ORDER BY star DESC `
 	rows, err := db.Query(query, goods.Type)
@@ -302,6 +316,7 @@ func SearchTypeGoods(goods *model.DisplayGoods) ([]model.DisplayGoods, bool) {
 	return ans, true
 }
 
+// SearchGoods 搜索商品
 func SearchGoods(search model.Search) []model.Association {
 	query := `INSERT INTO search (content) values (?)`
 	IdGet, err := db.Exec(query, search.Content)
@@ -318,6 +333,7 @@ func SearchGoods(search model.Search) []model.Association {
 	return AssociationCount(search)
 }
 
+// AssociationCount 计算搜索内容与商品信息的相关性。依照相关性排序
 func AssociationCount(search model.Search) []model.Association {
 	query := `SELECT id, goods_name, type, price, star, avatar, content FROM goods `
 	rows, err := db.Query(query)
@@ -363,6 +379,7 @@ func AssociationCount(search model.Search) []model.Association {
 	return ans
 }
 
+// ComPare 工具函数，用于输出两个字符串的相同部分的数量
 func ComPare(x string, y string) int {
 	charCount := make(map[rune]int)
 	for _, char := range x {

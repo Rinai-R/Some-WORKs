@@ -7,6 +7,7 @@ import (
 	"log"
 )
 
+// GetGoodsMsg 查询商品的评论
 func GetGoodsMsg(goods model.Goods) []model.Msg {
 	var ans []model.Msg
 	query := `select id from msg where goods_id = ? and parent_id IS NULL`
@@ -36,6 +37,8 @@ func GetGoodsMsg(goods model.Goods) []model.Msg {
 			log.Println(err)
 			return nil
 		}
+		//采取中序遍历，根据父节点的id查找子节点
+		//将儿子（回复该评论的内容）加入response成员切片中。
 		MainMsg.Response = InOrder(MainMsg.Id)
 		ans = append(ans, MainMsg)
 	}
@@ -69,6 +72,7 @@ func InOrder(parent_id string) []model.Msg {
 			log.Println(err)
 			return nil
 		}
+		//将儿子（回复该评论的内容）加入response成员切片中。
 		message.Response = InOrder(message.Id)
 		ans = append(ans, message)
 	}
@@ -102,6 +106,7 @@ func Response(msg model.Msg) bool {
 	return true
 }
 
+// Praise 点赞评论，第二次点击为取消点赞
 func Praise(praise model.Praise) bool {
 	query := `SELECT 1 FROM praise WHERE message_id = ?  AND user_id = ?`
 	var exist bool
@@ -140,6 +145,7 @@ func Praise(praise model.Praise) bool {
 	return true
 }
 
+// AlterMsg 更新评论的内容
 func AlterMsg(msg model.Msg) bool {
 	query := `UPDATE msg SET content = ? WHERE id = ? AND user_id = ?`
 	_, err := db.Exec(query, msg.Content, msg.Id, msg.User_id)
@@ -150,6 +156,7 @@ func AlterMsg(msg model.Msg) bool {
 	return true
 }
 
+// DelMsg 删
 func DelMsg(msg model.Msg) bool {
 	query := `DELETE FROM msg WHERE id = ? AND user_id = ?`
 	_, err := db.Exec(query, msg.Id, msg.User_id)

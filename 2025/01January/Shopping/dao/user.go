@@ -76,7 +76,10 @@ func GetId(username string) string {
 	return id
 }
 
+// GetUserInfo 查询用户信息
 func GetUserInfo(user *model.User) bool {
+
+	//先查redis
 	CacheKey := "user:" + user.Username
 	if CacheData, err := rdb.Get(ctx, CacheKey).Result(); err == nil {
 		if err := json.Unmarshal([]byte(CacheData), &user); err == nil {
@@ -85,7 +88,7 @@ func GetUserInfo(user *model.User) bool {
 			return true
 		}
 	}
-
+	//没查到，查mysql
 	query := `SELECT id, username, password, balance, avatar, nickname, bio FROM user WHERE username = ?`
 	err := db.QueryRow(query, user.Username).Scan(&user.Id, &user.Username, &user.Password, &user.Balance, &user.Avatar, &user.Nickname, &user.Bio)
 	if err != nil {
@@ -102,7 +105,7 @@ func GetUserInfo(user *model.User) bool {
 
 	return true
 }
-
+//充值
 func Recharge(money float64, username string) bool {
 	query := `UPDATE user SET balance = balance + ? WHERE username = ?`
 	_, err := db.Exec(query, money, username)
@@ -135,6 +138,7 @@ func Recharge(money float64, username string) bool {
 	return true
 }
 
+// AlterUserInfo 改用户信息
 func AlterUserInfo(NewInfo model.User, username string) bool {
 	if NewInfo.Password != "" {
 		query := `UPDATE user SET password = ? WHERE username = ?`

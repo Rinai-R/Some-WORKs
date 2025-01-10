@@ -185,7 +185,7 @@ func BrowseGoods(goods *model.Goods, Browse model.Browse) bool {
 }
 
 func BrowseRecords(Browse model.Browse) ([]model.Browse, bool) {
-	query := `SELECT id, user_id, goods_id, goods_name, avatar, browse_time FROM browse_records WHERE user_id = ?`
+	query := `SELECT id, user_id, goods_id, goods_name, avatar, browse_time FROM browse_records WHERE user_id = ? ORDER BY browse_time DESC`
 	rows, err := db.Query(query, Browse.User_id)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {

@@ -65,54 +65,87 @@ func RegisterGoods(goods model.Goods) bool {
 }
 
 func AlterGoodsInfo(goods model.Goods) bool {
+	tx, _ := db.Begin()
 	if goods.Goods_name != "" {
 		query := `UPDATE goods SET goods_name = ? WHERE id = ? AND shop_id = ?`
-		res, err := db.Exec(query, goods.Goods_name, goods.Id, goods.Shop_id)
+		res, err := tx.Exec(query, goods.Goods_name, goods.Id, goods.Shop_id)
 		if err != nil {
+			err := tx.Rollback()
+			if err != nil {
+				return false
+			}
 			log.Println(err)
 			return false
 		}
 		aff, err0 := res.RowsAffected()
 		if err0 != nil || aff == 0 {
+			err := tx.Rollback()
+			if err != nil {
+				return false
+			}
 			log.Println(err0)
 			return false
 		}
 	}
 	if goods.Content != "" {
 		query := `UPDATE goods SET content = ? WHERE id = ? AND shop_id = ?`
-		res, err := db.Exec(query, goods.Content, goods.Id, goods.Shop_id)
+		res, err := tx.Exec(query, goods.Content, goods.Id, goods.Shop_id)
 		if err != nil {
+			err := tx.Rollback()
+			if err != nil {
+				return false
+			}
 			log.Println(err)
 			return false
 		}
 		aff, err0 := res.RowsAffected()
 		if err0 != nil || aff == 0 {
+			err := tx.Rollback()
+			if err != nil {
+				return false
+			}
 			log.Println(err0)
 			return false
 		}
 	}
 	if goods.Price != 0.0 {
 		query := `update goods set price = ? where shop_id = ? AND id = ?`
-		res, err := db.Exec(query, goods.Price, goods.Shop_id, goods.Id)
+		res, err := tx.Exec(query, goods.Price, goods.Shop_id, goods.Id)
 		if err != nil {
+			err := tx.Rollback()
+			if err != nil {
+				return false
+			}
 			log.Println(err)
 			return false
 		}
 		aff, err0 := res.RowsAffected()
 		if err0 != nil || aff == 0 {
+			err := tx.Rollback()
+			if err != nil {
+				return false
+			}
 			log.Println(err0)
 			return false
 		}
 	}
 	if goods.Number != 0 {
 		query := `update goods set number = ? where shop_id = ? AND id = ?`
-		res, err := db.Exec(query, goods.Number, goods.Shop_id, goods.Id)
+		res, err := tx.Exec(query, goods.Number, goods.Shop_id, goods.Id)
 		if err != nil {
+			err := tx.Rollback()
+			if err != nil {
+				return false
+			}
 			log.Println(err)
 			return false
 		}
 		aff, err0 := res.RowsAffected()
 		if err0 != nil || aff == 0 {
+			err := tx.Rollback()
+			if err != nil {
+				return false
+			}
 			log.Println(err0)
 			return false
 		}
@@ -120,13 +153,21 @@ func AlterGoodsInfo(goods model.Goods) bool {
 
 	if goods.Avatar != "" {
 		query := `UPDATE goods SET avatar = ? WHERE shop_id = ? AND id = ?`
-		res, err := db.Exec(query, goods.Avatar, goods.Shop_id, goods.Id)
+		res, err := tx.Exec(query, goods.Avatar, goods.Shop_id, goods.Id)
 		if err != nil {
+			err := tx.Rollback()
+			if err != nil {
+				return false
+			}
 			log.Println(err)
 			return false
 		}
 		aff, err0 := res.RowsAffected()
 		if err0 != nil || aff == 0 {
+			err := tx.Rollback()
+			if err != nil {
+				return false
+			}
 			log.Println(err0)
 			return false
 		}
@@ -135,7 +176,10 @@ func AlterGoodsInfo(goods model.Goods) bool {
 	CacheKey := "goods:" + goods.Id
 	CacheData, _ := json.Marshal(goods)
 	rdb.Set(ctx, CacheKey, CacheData, time.Hour)
-
+	err := tx.Commit()
+	if err != nil {
+		return false
+	}
 	return true
 }
 

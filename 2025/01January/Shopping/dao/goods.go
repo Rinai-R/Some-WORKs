@@ -29,7 +29,7 @@ func GetShopAndGoodsInfo(shop *model.Shop) bool {
 		log.Println(err)
 		return false
 	}
-	var goods []model.DisplayGoods//利用切片存储多个商品内容，方便返回
+	var goods []model.DisplayGoods //利用切片存储多个商品内容，方便返回
 	query = `SELECT goods_name, type, price, star, avatar FROM goods WHERE shop_id = ?`
 	Rows, err0 := db.Query(query, shop.Id)
 	if err0 != nil {
@@ -70,20 +70,33 @@ func AddGoods(username string, goods model.Goods) (string, bool) {
 	if num < goods.Number {
 		return "lack", false
 	}
+	tx, _ := db.Begin()
 	goods.Goods_name = GetGoodsName(goods.Id)
 	query := `insert into cart_goods (user_id, goods_id, goods_name, number, price) values (?, ?, ?, ?, ?)`
-	_, err1 := db.Exec(query, id, goods.Id, goods.Goods_name, goods.Number, price)
+	_, err1 := tx.Exec(query, id, goods.Id, goods.Goods_name, goods.Number, price)
 	if err1 != nil {
+		err := tx.Rollback()
+		if err != nil {
+			return "", false
+		}
 		log.Println(err1)
 		return err1.Error(), false
 	}
 	//更新购物车中的总价格
 	query = `update shopping_cart set sum = sum + ? where user_id = ?`
 	sum := float64(goods.Number) * price
-	_, err2 := db.Exec(query, sum, id)
+	_, err2 := tx.Exec(query, sum, id)
 	if err2 != nil {
+		err := tx.Rollback()
+		if err != nil {
+			return "", false
+		}
 		log.Println(err2)
 		return err2.Error(), false
+	}
+	err := tx.Commit()
+	if err != nil {
+		return "", false
 	}
 	return "", true
 }
@@ -137,18 +150,34 @@ func DelCartGoods(cart_goods model.Cart_Goods) bool {
 		return false
 	}
 	total := float64(num) * price
+	tx, err := db.Begin()
+	if err != nil {
+		log.Fatal(err)
+	}
 	//更新购物车的总价格
 	query := `UPDATE shopping_cart SET sum = sum - ? WHERE user_id = ?`
-	_, err := db.Exec(query, total, cart_goods.User_Id)
+	_, err = tx.Exec(query, total, cart_goods.User_Id)
 	if err != nil {
+		err := tx.Rollback()
+		if err != nil {
+			return false
+		}
 		log.Println(err)
 		return false
 	}
 	//删
 	query = `DELETE FROM cart_goods WHERE user_id = ? AND goods_id = ?`
-	_, err = db.Exec(query, cart_goods.User_Id, cart_goods.Goods_Id)
+	_, err = tx.Exec(query, cart_goods.User_Id, cart_goods.Goods_Id)
 	if err != nil {
+		err := tx.Rollback()
+		if err != nil {
+			return false
+		}
 		log.Println(err)
+		return false
+	}
+	err = tx.Commit()
+	if err != nil {
 		return false
 	}
 	return true
@@ -193,7 +222,8 @@ func BrowseGoods(goods *model.Goods, Browse model.Browse) bool {
 	log.Println("通过MySQL得到数据")
 	return true
 }
-//浏览记录
+
+// 浏览记录
 func BrowseRecords(Browse model.Browse) ([]model.Browse, bool) {
 	query := `SELECT id, user_id, goods_id, goods_name, avatar, browse_time FROM browse_records WHERE user_id = ? ORDER BY browse_time DESC`
 	rows, err := db.Query(query, Browse.User_id)
@@ -234,32 +264,53 @@ func StarGoods(star model.Star) bool {
 		log.Println(err)
 		return false
 	}
+	tx, err := db.Begin()
 	if !exist {
 		query = `INSERT INTO star (user_id, goods_id) values(?, ?)`
-		_, err = db.Exec(query, star.User_id, star.Goods_id)
+		_, err = tx.Exec(query, star.User_id, star.Goods_id)
 		if err != nil {
+			err := tx.Rollback()
+			if err != nil {
+				return false
+			}
 			log.Println(err)
 			return false
 		}
 		query = `UPDATE goods SET star = star + 1 WHERE id = ?`
-		_, err = db.Exec(query, star.Goods_id)
+		_, err = tx.Exec(query, star.Goods_id)
 		if err != nil {
+			err := tx.Rollback()
+			if err != nil {
+				return false
+			}
 			log.Println(err)
 			return false
 		}
 	} else {
 		query = `DELETE FROM star WHERE goods_id = ? AND user_id = ?`
-		_, err = db.Exec(query, star.Goods_id, star.User_id)
+		_, err = tx.Exec(query, star.Goods_id, star.User_id)
 		if err != nil {
+			err := tx.Rollback()
+			if err != nil {
+				return false
+			}
 			log.Println(err)
 			return false
 		}
 		query = `UPDATE goods SET star = star - 1 WHERE id = ?`
-		_, err = db.Exec(query, star.Goods_id)
+		_, err = tx.Exec(query, star.Goods_id)
 		if err != nil {
+			err := tx.Rollback()
+			if err != nil {
+				return false
+			}
 			log.Println(err)
 			return false
 		}
+	}
+	err = tx.Commit()
+	if err != nil {
+		return false
 	}
 	return true
 }
@@ -342,6 +393,7 @@ func AssociationCount(search model.Search) []model.Association {
 		return nil
 	}
 	var ans []model.Association
+	tx, err := db.Begin()
 	for rows.Next() {
 		tmp := struct {
 			model.Association
@@ -350,16 +402,28 @@ func AssociationCount(search model.Search) []model.Association {
 		tmp.Search_id = search.Id
 		err = rows.Scan(&tmp.Goods_id, &tmp.Goods_name, &tmp.Type, &tmp.Price, &tmp.Star, &tmp.Avatar, &tmp.content)
 		if err != nil {
+			err := tx.Rollback()
+			if err != nil {
+				return nil
+			}
 			log.Println(err)
 			return nil
 		}
 		tmp.Value = ComPare(search.Content, tmp.content) + ComPare(search.Content, tmp.Goods_name)
 		query = `INSERT INTO association (search_id, goods_id, value, goods_name, avatar, price, type, star) values(?, ?, ?, ?, ?, ?, ?, ?)`
-		_, err = db.Exec(query, tmp.Search_id, tmp.Goods_id, tmp.Value, tmp.Goods_name, tmp.Avatar, tmp.Price, tmp.Type, tmp.Star)
+		_, err = tx.Exec(query, tmp.Search_id, tmp.Goods_id, tmp.Value, tmp.Goods_name, tmp.Avatar, tmp.Price, tmp.Type, tmp.Star)
 		if err != nil {
+			err := tx.Rollback()
+			if err != nil {
+				return nil
+			}
 			log.Println(err)
 			return nil
 		}
+	}
+	err = tx.Commit()
+	if err != nil {
+		return nil
 	}
 	query = `SELECT search_id, goods_id, value, goods_name, avatar, price, type, star FROM association WHERE search_id = ? ORDER BY value DESC `
 	ROWS, err1 := db.Query(query, search.Id)

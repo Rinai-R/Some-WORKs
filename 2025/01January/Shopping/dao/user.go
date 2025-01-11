@@ -105,7 +105,8 @@ func GetUserInfo(user *model.User) bool {
 
 	return true
 }
-//充值
+
+// Recharge 充值
 func Recharge(money float64, username string) bool {
 	query := `UPDATE user SET balance = balance + ? WHERE username = ?`
 	_, err := db.Exec(query, money, username)
@@ -140,10 +141,15 @@ func Recharge(money float64, username string) bool {
 
 // AlterUserInfo 改用户信息
 func AlterUserInfo(NewInfo model.User, username string) bool {
+	tx, _ := db.Begin()
 	if NewInfo.Password != "" {
 		query := `UPDATE user SET password = ? WHERE username = ?`
-		_, err := db.Exec(query, NewInfo.Password, username)
+		_, err := tx.Exec(query, NewInfo.Password, username)
 		if err != nil {
+			err := tx.Rollback()
+			if err != nil {
+				return false
+			}
 			log.Println(err)
 			return false
 		}
@@ -151,8 +157,12 @@ func AlterUserInfo(NewInfo model.User, username string) bool {
 
 	if NewInfo.Nickname != "" {
 		query := `UPDATE user SET nickname = ? WHERE username = ?`
-		_, err := db.Exec(query, NewInfo.Nickname, username)
+		_, err := tx.Exec(query, NewInfo.Nickname, username)
 		if err != nil {
+			err := tx.Rollback()
+			if err != nil {
+				return false
+			}
 			log.Println(err)
 			return false
 		}
@@ -160,8 +170,12 @@ func AlterUserInfo(NewInfo model.User, username string) bool {
 
 	if NewInfo.Avatar != "" {
 		query := `UPDATE user SET avatar = ? WHERE username = ?`
-		_, err := db.Exec(query, NewInfo.Avatar, username)
+		_, err := tx.Exec(query, NewInfo.Avatar, username)
 		if err != nil {
+			err := tx.Rollback()
+			if err != nil {
+				return false
+			}
 			log.Println(err)
 			return false
 		}
@@ -169,8 +183,12 @@ func AlterUserInfo(NewInfo model.User, username string) bool {
 
 	if NewInfo.Bio != "" {
 		query := `UPDATE user SET bio = ? WHERE username = ?`
-		_, err := db.Exec(query, NewInfo.Bio, username)
+		_, err := tx.Exec(query, NewInfo.Bio, username)
 		if err != nil {
+			err := tx.Rollback()
+			if err != nil {
+				return false
+			}
 			log.Println(err)
 			return false
 		}

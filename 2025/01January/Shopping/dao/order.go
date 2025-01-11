@@ -15,9 +15,14 @@ func SubmitOrder(order *model.Order) bool {
 		log.Println(err)
 		return false
 	}
+	tx, _ := db.Begin()
 	query = `INSERT INTO orders (user_id, sum) values (?, ?)`
-	IdGet, err0 := db.Exec(query, order.User_id, order.Sum)
+	IdGet, err0 := tx.Exec(query, order.User_id, order.Sum)
 	if err0 != nil {
+		err := tx.Rollback()
+		if err != nil {
+			return false
+		}
 		log.Println(err0)
 		return false
 	}
@@ -31,6 +36,10 @@ func SubmitOrder(order *model.Order) bool {
 	query = `SELECT goods_id, goods_name, number, price FROM cart_goods WHERE user_id = ?`
 	Rows, err2 := db.Query(query, order.User_id)
 	if err2 != nil {
+		err := tx.Rollback()
+		if err != nil {
+			return false
+		}
 		log.Println(err2)
 		return false
 	}
@@ -43,12 +52,20 @@ func SubmitOrder(order *model.Order) bool {
 			return false
 		}
 		query = `INSERT INTO order_goods (id, goods_name, number, price, order_id) values (?, ?, ?, ?, ?)`
-		_, err = db.Exec(query, goods.Goods_Id, goods.Goods_Name, goods.Number, goods.Price, order.Id)
+		_, err = tx.Exec(query, goods.Goods_Id, goods.Goods_Name, goods.Number, goods.Price, order.Id)
 		if err != nil {
+			err := tx.Rollback()
+			if err != nil {
+				return false
+			}
 			log.Println(err)
 			return false
 		}
 		order.Goods = append(order.Goods, goods)
+	}
+	err = tx.Commit()
+	if err != nil {
+		return false
 	}
 	return true
 }
@@ -119,6 +136,7 @@ func ConfirmOrder(order model.Order) ([]model.Lack_Msg, string) {
 		log.Println(err)
 		return nil, "error"
 	}
+	tx, _ := db.Begin()
 	for Rows.Next() {
 		var id int
 		var num int
@@ -129,8 +147,12 @@ func ConfirmOrder(order model.Order) ([]model.Lack_Msg, string) {
 			return nil, "error"
 		}
 		query = `UPDATE goods SET number = number - ? WHERE id = ?`
-		_, err = db.Exec(query, num, id)
+		_, err = tx.Exec(query, num, id)
 		if err != nil {
+			err := tx.Rollback()
+			if err != nil {
+				return nil, ""
+			}
 			log.Println(err)
 			return nil, "error"
 		}
@@ -138,41 +160,69 @@ func ConfirmOrder(order model.Order) ([]model.Lack_Msg, string) {
 		var shop_id int
 		err = db.QueryRow(query, id).Scan(&shop_id)
 		if err != nil {
+			err := tx.Rollback()
+			if err != nil {
+				return nil, ""
+			}
 			log.Println(err)
 			return nil, "error"
 		}
 		all := float64(num) * price
 		query = `UPDATE shop SET profit = profit + ? WHERE id = ?`
-		_, err = db.Exec(query, all, shop_id)
+		_, err = tx.Exec(query, all, shop_id)
 		if err != nil {
+			err := tx.Rollback()
+			if err != nil {
+				return nil, ""
+			}
 			log.Println(err)
 			return nil, "error"
 		}
 	}
 	//清空购物车
 	query = `UPDATE shopping_cart SET sum = 0 WHERE user_id = ?`
-	_, err = db.Exec(query, order.User_id)
+	_, err = tx.Exec(query, order.User_id)
 	if err != nil {
+		err := tx.Rollback()
+		if err != nil {
+			return nil, ""
+		}
 		log.Println(err)
 		return nil, "error"
 	}
 	query = `DELETE FROM cart_goods WHERE user_id = ?`
-	_, err = db.Exec(query, order.User_id)
+	_, err = tx.Exec(query, order.User_id)
 	if err != nil {
+		err := tx.Rollback()
+		if err != nil {
+			return nil, ""
+		}
 		log.Println(err)
 		return nil, "error"
 	}
 	query = `UPDATE user SET balance = balance - ? WHERE id = ?`
-	_, err = db.Exec(query, sum, order.User_id)
+	_, err = tx.Exec(query, sum, order.User_id)
 	if err != nil {
+		err := tx.Rollback()
+		if err != nil {
+			return nil, ""
+		}
 		log.Println(err)
 		return nil, "error"
 	}
 	query = `UPDATE orders SET is_deleted = 1 WHERE id = ?`
-	_, err = db.Exec(query, order.Id)
+	_, err = tx.Exec(query, order.Id)
 	if err != nil {
+		err := tx.Rollback()
+		if err != nil {
+			return nil, ""
+		}
 		log.Println(err)
 		return nil, "error"
+	}
+	err = tx.Commit()
+	if err != nil {
+		return nil, ""
 	}
 	return nil, "ok"
 }

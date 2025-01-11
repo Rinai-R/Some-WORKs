@@ -115,32 +115,53 @@ func Praise(praise model.Praise) bool {
 		log.Println(err)
 		return false
 	}
+	tx, err := db.Begin()
 	if !exist {
 		query = `UPDATE msg SET praised_num = praised_num + 1 WHERE id = ?`
-		_, err = db.Exec(query, praise.Message_id)
+		_, err = tx.Exec(query, praise.Message_id)
 		if err != nil {
+			err = tx.Rollback()
+			if err != nil {
+				return false
+			}
 			log.Println(err)
 			return false
 		}
 		query = `INSERT INTO praise (user_id, message_id) values (?, ?)`
-		_, err = db.Exec(query, praise.User_id, praise.Message_id)
+		_, err = tx.Exec(query, praise.User_id, praise.Message_id)
 		if err != nil {
+			err = tx.Rollback()
+			if err != nil {
+				return false
+			}
 			log.Println(err)
 			return false
 		}
 	} else {
 		query = `UPDATE msg SET praised_num = praised_num - 1 WHERE id = ?`
-		_, err = db.Exec(query, praise.Message_id)
+		_, err = tx.Exec(query, praise.Message_id)
 		if err != nil {
+			err = tx.Rollback()
+			if err != nil {
+				return false
+			}
 			log.Println(err)
 			return false
 		}
 		query = `DELETE FROM praise  WHERE message_id = ? AND user_id = ?`
-		_, err = db.Exec(query, praise.Message_id, praise.User_id)
+		_, err = tx.Exec(query, praise.Message_id, praise.User_id)
 		if err != nil {
+			err = tx.Rollback()
+			if err != nil {
+				return false
+			}
 			log.Println(err)
 			return false
 		}
+	}
+	err = tx.Commit()
+	if err != nil {
+		return false
 	}
 	return true
 }

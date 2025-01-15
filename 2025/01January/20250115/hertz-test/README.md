@@ -8,4 +8,4 @@
 
 就这样了。
 
-![一张图](D:\New\Golang\2025\01January\20250115\hertz-test\assets\新建 BMP 图像.bmp)
+![一张图](.\assets\新建 BMP 图像.bmp)

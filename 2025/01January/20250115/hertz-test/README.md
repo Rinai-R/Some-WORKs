@@ -8,4 +8,4 @@
 
 就这样了。
 
-![一张图](.\assets\pic.png)
+![一张图](./assets/pic.png)

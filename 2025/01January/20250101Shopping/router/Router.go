@@ -1,8 +1,8 @@
 package router
 
 import (
-	"Golang/2025/01January/Shopping/Middleware"
-	"Golang/2025/01January/Shopping/api"
+	"Golang/2025/01January/20250101Shopping/Middleware"
+	"Golang/2025/01January/20250101Shopping/api"
 	"github.com/gin-gonic/gin"
 )
 

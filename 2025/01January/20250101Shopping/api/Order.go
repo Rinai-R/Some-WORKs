@@ -1,9 +1,9 @@
 package api
 
 import (
-	"Golang/2025/01January/Shopping/model"
-	"Golang/2025/01January/Shopping/service"
-	"Golang/2025/01January/Shopping/utils"
+	"Golang/2025/01January/20250101Shopping/model"
+	"Golang/2025/01January/20250101Shopping/service"
+	"Golang/2025/01January/20250101Shopping/utils"
 	"errors"
 	"github.com/gin-gonic/gin"
 	"net/http"

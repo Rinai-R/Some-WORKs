@@ -1,6 +1,6 @@
 package utils
 
-import "Golang/2025/01January/Shopping/model"
+import "Golang/2025/01January/20250101Shopping/model"
 
 const (
 	//ok

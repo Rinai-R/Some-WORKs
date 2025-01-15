@@ -1,7 +1,7 @@
 package dao
 
 import (
-	"Golang/2025/01January/Shopping/model"
+	"Golang/2025/01January/20250101Shopping/model"
 	"database/sql"
 	"errors"
 	"log"

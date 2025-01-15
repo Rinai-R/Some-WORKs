@@ -1,7 +1,7 @@
 package Middleware
 
 import (
-	"Golang/2025/01January/Shopping/utils"
+	"Golang/2025/01January/20250101Shopping/utils"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
@@ -30,7 +30,7 @@ func ShopMiddleware() gin.HandlerFunc {
 		TokenString := c.GetHeader("Authorization")
 
 		if TokenString == "" {
-			c.JSON(http.StatusUnauthorized,utils.UnAuthorized())
+			c.JSON(http.StatusUnauthorized, utils.UnAuthorized())
 			c.Abort()
 			return
 		}

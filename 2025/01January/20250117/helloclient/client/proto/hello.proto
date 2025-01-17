@@ -1,0 +1,20 @@
+// 这是在说明我们使用的是proto3语法。
+syntax = "proto3";
+
+// 这部分的内容是关于最后生成的go文件是处在哪个目录生成， service代表了生成的go文件的包名是service。
+option go_package = ".;service";
+
+service SayHello {
+  rpc SayHello(HelloRequest) returns (HelloResponse) {}
+}
+
+// message关键字，其实你可以理解为Golang中的结构体。
+// 这里只是比较特殊的是要求在后面的“赋值”。注意，这里并不是赋值，而是在定义这个变量在这个message中的位置。
+message HelloRequest {
+  string requestName = 1;
+  // int64 age = 2;
+}
+
+message HelloResponse {
+  string responseMsg = 1;
+}

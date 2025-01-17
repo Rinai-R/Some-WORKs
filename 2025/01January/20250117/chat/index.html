@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket Chat</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f9;
+        }
+        #chat {
+            width: 300px;
+            height: 400px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            overflow-y: scroll;
+            background-color: #fff;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        #msg {
+            width: 300px;
+            margin-top: 10px;
+        }
+        #send {
+            margin-top: 10px;
+            padding: 5px 10px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+        #send:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+<div id="chat"></div>
+<input type="text" id="msg" placeholder="输入消息...">
+<button id="send">发送</button>
+
+<script>
+    // 创建WebSocket连接
+    var ws;
+
+    function connect() {
+        ws = new WebSocket("ws://localhost:8080/chat");
+
+        ws.onopen = function() {
+            console.log("WebSocket连接已打开");
+        };
+
+        ws.onmessage = function(event) {
+            var chatBox = document.getElementById("chat");
+            var message = document.createElement("div");
+            message.textContent = "收到: " + event.data;
+            chatBox.appendChild(message);
+            chatBox.scrollTop = chatBox.scrollHeight; // 自动滚动到底部
+        };
+
+        ws.onclose = function(event) {
+            console.log("WebSocket连接已关闭，尝试重连...");
+            setTimeout(connect, 2000); // 每2秒尝试重连
+        };
+
+        ws.onerror = function(error) {
+            console.error("WebSocket出错:", error);
+        };
+    }
+
+    // 初始化连接
+    connect();
+
+    // 发送消息按钮点击事件
+    document.getElementById("send").onclick = function() {
+        var msgInput = document.getElementById("msg");
+        var message = msgInput.value.trim();
+
+        if (message !== "") {
+            ws.send(message);
+            var chatBox = document.getElementById("chat");
+            var sentMessage = document.createElement("div");
+            sentMessage.textContent = "发送: " + message;
+            chatBox.appendChild(sentMessage);
+            chatBox.scrollTop = chatBox.scrollHeight; // 自动滚动到底部
+            msgInput.value = ""; // 清空输入框
+        }
+    };
+</script>
+</body>
+</html>

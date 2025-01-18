@@ -19,7 +19,7 @@ var err error
 func init() {
 	// 创建Elasticsearch客户端
 	client, err = elastic.NewClient(
-		elastic.SetURL("http://192.168.195.128:9200"),
+		elastic.SetURL("http://192.168.195.129:9200"),
 		elastic.SetSniff(false),       // 禁用嗅探
 		elastic.SetHealthcheck(false), // 禁用健康检查
 	)
@@ -29,7 +29,7 @@ func init() {
 	}
 
 	// 检查连接是否成功
-	_, _, err = client.Ping("http://192.168.195.128:9200/").Do(context.Background())
+	_, _, err = client.Ping("http://192.168.195.129:9200/").Do(context.Background())
 	if err != nil {
 		log.Fatalf("Error pinging: %s", err)
 	}
@@ -50,7 +50,10 @@ func main() {
 	}
 
 	if !exists {
-		log.Fatalf("Error creating index: %s", IndexName)
+		_, err2 := client.CreateIndex(IndexName).Body(mappingTpl).Do(context.Background())
+		if err2 != nil {
+			return
+		}
 	}
 
 	rows, err := db.Query("SELECT id, avatar, goods_name, shop_id, content, type, number, price, star FROM goods")

@@ -17,7 +17,7 @@ func main() {
 		return
 	}
 	client, err := elastic.NewClient(
-		elastic.SetURL("http://192.168.195.128:9200"),
+		elastic.SetURL("http://192.168.195.129:9200"),
 		elastic.SetSniff(false),       // 禁用嗅探
 		elastic.SetHealthcheck(false), // 禁用健康检查
 	)
@@ -27,7 +27,7 @@ func main() {
 	}
 
 	// 检查连接是否成功
-	_, _, err = client.Ping("http://192.168.195.128:9200/").Do(context.Background())
+	_, _, err = client.Ping("http://192.168.195.129:9200/").Do(context.Background())
 	if err != nil {
 		log.Fatalf("Error pinging: %s", err)
 	}
@@ -37,8 +37,8 @@ func main() {
 
 	// 执行查询
 	searchResult, err := client.Search().
-		Index("goods").       // 查询的索引
-		Query(matchQuery).    // 使用的查询
+		Index("goods"). // 查询的索引
+		Query(matchQuery). // 使用的查询
 		TrackTotalHits(true). // 跟踪总命中数
 		Size(100).
 		Do(context.Background()) // 执行查询

@@ -44,6 +44,7 @@ func init() {
         "copy_to": "all"
       }
     }
-  }`
+  }
+}`
 
 }

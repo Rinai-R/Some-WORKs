@@ -10,4 +10,5 @@ type Goods struct {
 	Number     int     `json:"number"`
 	Price      float64 `json:"price"`
 	Star       int     `json:"star"`
+	Score      float64
 }

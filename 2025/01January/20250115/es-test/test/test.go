@@ -37,8 +37,8 @@ func main() {
 
 	// 执行查询
 	searchResult, err := client.Search().
-		Index("goods"). // 查询的索引
-		Query(matchQuery). // 使用的查询
+		Index("goods").       // 查询的索引
+		Query(matchQuery).    // 使用的查询
 		TrackTotalHits(true). // 跟踪总命中数
 		Size(100).
 		Do(context.Background()) // 执行查询
@@ -54,6 +54,7 @@ func main() {
 
 	// 遍历搜索结果的 Hits
 	for _, hit := range searchResult.Hits.Hits {
+
 		var goods model.Goods
 
 		// 解码 hit.Source 直接到结构体
@@ -61,6 +62,7 @@ func main() {
 		if err != nil {
 			log.Fatalf("Error binding JSON to struct: %s", err)
 		}
+		goods.Score = *hit.Score
 		ans = append(ans, goods)
 	}
 

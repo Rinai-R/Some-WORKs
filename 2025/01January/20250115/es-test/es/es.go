@@ -52,6 +52,7 @@ func main() {
 	if !exists {
 		_, err2 := client.CreateIndex(IndexName).Body(mappingTpl).Do(context.Background())
 		if err2 != nil {
+			log.Fatalf("Error creating index: %s", err2)
 			return
 		}
 	}

@@ -16,7 +16,7 @@ func main() {
 	ctx = context.Background()
 	rdb = redis.NewClient(&redis.Options{
 		Addr:     "192.168.195.128:6379",
-		Password: "~Cy710822",
+		Password: "*****",
 		DB:       0,
 	})
 	for i := 0; i <= 10; i++ {

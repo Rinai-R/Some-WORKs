@@ -1,0 +1,5 @@
+RedisConfig:
+  addr: "192.168.195.129:6379"
+  password: "~123456"
+  db: 0
+

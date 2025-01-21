@@ -79,10 +79,10 @@ func main() {
 
 	// 启动Nacos服务注册
 	nacos.RegisterServiceInstance(nacos.Client, vo.RegisterInstanceParam{
-		Ip:          "10.0.0.10",                          // 根据实际情况填写
+		Ip:          "127.0.0.1",                          // 根据实际情况填写
 		Port:        10001,                                // gRPC服务的端口
-		ServiceName: "test",                               // 服务名称
-		GroupName:   "group-a",                            // 分组名称
+		ServiceName: "UserTest",                           // 服务名称
+		GroupName:   "GroupTest",                          // 分组名称
 		ClusterName: "cluster-a",                          // 集群名称
 		Weight:      10,                                   // 权重
 		Enable:      true,                                 // 是否启用
@@ -96,5 +96,14 @@ func main() {
 	if err := grpcServer.Serve(listener); err != nil {
 		log.Fatalf("Failed to serve: %v", err)
 	}
+	defer grpcServer.GracefulStop()
+	defer listener.Close()
+	defer nacos.DeRegisterServiceInstance(nacos.Client, vo.DeregisterInstanceParam{
+		Ip:          "127.0.0.1", // 根据实际情况填写
+		Port:        10001,       // gRPC服务的端口
+		ServiceName: "UserTest",  // 服务名称
+		GroupName:   "GroupTest", // 分组名称
+		Cluster:     "cluster-a", // 集群名称
+	})
 	select {}
 }

@@ -26,7 +26,7 @@ func main() {
 		constant.WithLogDir("/tmp/nacos/log"),
 		constant.WithCacheDir("/tmp/nacos/cache"),
 		constant.WithLogLevel("debug"),
-		constant.WithUsername("nacos"),     // 用户名
+		constant.WithUsername("nacos"), // 用户名
 		constant.WithPassword("nacos"), // 密码
 	)
 

@@ -1,11 +1,11 @@
 package main
 
 import (
+	"Golang/2025/01January/20250121/micro/app/client/nacos"
 	"Golang/2025/01January/20250121/micro/app/model"
-	"Golang/2025/01January/20250121/micro/client/nacos"
-	pb "Golang/2025/01January/20250121/micro/client/user/proto"
 	"Golang/2025/01January/20250121/micro/response"
 	"Golang/2025/01January/20250121/micro/server/user/dao"
+	pb "Golang/2025/01January/20250121/micro/server/user/proto"
 	"context"
 	"github.com/nacos-group/nacos-sdk-go/v2/vo"
 	"google.golang.org/grpc"

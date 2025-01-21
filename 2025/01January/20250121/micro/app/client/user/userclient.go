@@ -1,8 +1,8 @@
 package rpc
 
 import (
-	"Golang/2025/01January/20250121/micro/client/nacos"
-	pb "Golang/2025/01January/20250121/micro/client/user/proto"
+	"Golang/2025/01January/20250121/micro/app/client/nacos"
+	pb "Golang/2025/01January/20250121/micro/app/client/user/proto"
 	"fmt"
 	"github.com/nacos-group/nacos-sdk-go/v2/vo"
 	"google.golang.org/grpc"

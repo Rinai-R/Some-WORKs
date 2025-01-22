@@ -71,7 +71,6 @@ func main() {
 		log.Fatalf("Failed to listen: %v", err)
 	}
 
-	// 创建gRPC服务器并设置消息大小限制
 	grpcServer := grpc.NewServer(grpc.Creds(insecure.NewCredentials()))
 
 	// 注册服务

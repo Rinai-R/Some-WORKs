@@ -1,5 +1,5 @@
 MySQL:
   addr: "127.0.0.1:3306"
   username: "root"
-  password: "~Cy710822"
+  password: "123456"
   db: "test"

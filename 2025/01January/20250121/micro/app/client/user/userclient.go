@@ -38,9 +38,7 @@ func init() {
 	addr := fmt.Sprintf("%s:%d", service.Hosts[0].Ip, service.Hosts[0].Port)
 
 	// 连接到 gRPC 服务
-	UserConn, err = grpc.Dial(addr,
-		grpc.WithInsecure(),
-		grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(10*1024*1024), grpc.MaxCallSendMsgSize(10*1024*1024)))
+	UserConn, err = grpc.Dial(addr, grpc.WithInsecure())
 
 	if err != nil {
 		log.Fatalf("failed to connect to gRPC service: %v", err)

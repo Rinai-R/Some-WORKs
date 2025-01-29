@@ -9,6 +9,7 @@ import (
 	"context"
 	"errors"
 	"github.com/cloudwego/hertz/pkg/app"
+	"log"
 )
 
 func Register(ctx context.Context, r *app.RequestContext) {
@@ -18,10 +19,13 @@ func Register(ctx context.Context, r *app.RequestContext) {
 		r.JSON(400, response.Bind(err))
 		return
 	}
-	if _, err := rpc.UserClient.Register(ctx, &pb.RegisterRequest{
+	if res, err := rpc.UserClient.Register(ctx, &pb.RegisterRequest{
 		Username: user.Name,
 		Password: user.Password,
 	}); err != nil {
+		if res == nil {
+			log.Println(err)
+		}
 		if errors.Is(err, response.ErrNameLength) {
 			r.JSON(401, response.Register(err))
 		} else if errors.Is(err, response.ErrPasswordLength) {

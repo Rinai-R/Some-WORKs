@@ -28,7 +28,7 @@ func main() {
 		constant.WithCacheDir("/tmp/nacos/cache"),                        // 缓存目录
 		constant.WithLogLevel("debug"),                                   // 日志级别
 		constant.WithUsername("nacos"),                                   // 用户名
-		constant.WithPassword("nacos"),                               // 密码
+		constant.WithPassword("nacos"),                                   // 密码
 	)
 
 	// 创建配置客户端

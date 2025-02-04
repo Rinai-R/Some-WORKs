@@ -10,7 +10,7 @@ import (
 
 func main() {
 	prod, _ := rocketmq.NewProducer(
-		producer.WithNameServer([]string{"127.0.0.1:9876"}),
+		producer.WithNameServer([]string{"192.168.195.129:9876"}),
 		producer.WithRetry(5),
 		producer.WithGroupName("PG"),
 	)
@@ -18,7 +18,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	for i := 0; i < 50000; i++ {
+	for i := 0; i < 5000; i++ {
 		go func() {
 			num := strconv.Itoa(i)
 			msg := &primitive.Message{

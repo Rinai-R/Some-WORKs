@@ -1,0 +1,2 @@
+kitex -module Golang -service user -use Golang/2025/02February/20250209/kitex/kitex_gen ../../idl/user.thrift
+在user这一层文件夹执行这一段命令生成项目代码

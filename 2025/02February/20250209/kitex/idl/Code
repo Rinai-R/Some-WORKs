@@ -1,0 +1,2 @@
+kitex -module Golang idl/user.thrift
+生成kitex_gen需要在终端输入的命令

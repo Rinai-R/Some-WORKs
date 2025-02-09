@@ -11,12 +11,18 @@ type UserImpl struct{}
 
 // Register implements the UserImpl interface.
 func (s *UserImpl) Register(ctx context.Context, request *user.RegisterRequest) (resp *base.Response, err error) {
-	// TODO: Your code here...
-	return
+	//注册的业务逻辑
+	return &base.Response{
+		Code: 200,
+		Msg:  "success",
+	}, nil
 }
 
 // Login implements the UserImpl interface.
 func (s *UserImpl) Login(ctx context.Context, request *user.LoginRequest) (resp *base.Response, err error) {
-	// TODO: Your code here...
-	return
+	//登陆的业务逻辑
+	return &base.Response{
+		Code: 200,
+		Msg:  "success",
+	}, nil
 }

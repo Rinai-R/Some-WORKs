@@ -12,6 +12,7 @@ struct LoginRequest {
     2: string password
 }
 
+
 service User {
     base.Response Register(1: RegisterRequest Request)
     base.Response Login(1: LoginRequest Request)

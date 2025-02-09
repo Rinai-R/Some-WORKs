@@ -62,7 +62,7 @@ func topKFrequent(nums []int, k int) []int {
 }
 
 func main() {
-	last := make([]int, 0)
+	_ = make([]int, 0)
 	nums := []int{1, 1, 216, 216, 216, 216, 216, 216, 6, 1, 2, 2, 3, 9, 9, 5, 6, 0, 6, 6, 9, 4, 5, 12, 6, 459, 15, 15, 216, 26, 15, 115, 15}
 	k := 5
 	fmt.Println(topKFrequent(nums, k))

@@ -14,7 +14,7 @@ func (s *UserImpl) Register(ctx context.Context, request *user.RegisterRequest) 
 	//注册的业务逻辑
 	return &base.Response{
 		Code: 200,
-		Msg:  "ok",
+		Msg:  "11111修改了",
 	}, nil
 }
 
@@ -23,6 +23,6 @@ func (s *UserImpl) Login(ctx context.Context, request *user.LoginRequest) (resp 
 	//登陆的业务逻辑
 	return &base.Response{
 		Code: 200,
-		Msg:  "success",
+		Msg:  "原神?启动!",
 	}, nil
 }

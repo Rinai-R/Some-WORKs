@@ -1,9 +1,8 @@
 package Client
 
 import (
-	"Golang/2025/02February/20250210/kitex-etcd/Logger"
 	"context"
-	"fmt"
+	"go.etcd.io/etcd/api/v3/mvccpb"
 	clientv3 "go.etcd.io/etcd/client/v3"
 	"log"
 	"time"
@@ -18,14 +17,15 @@ var ETCD *Registry
 
 func init() {
 	etcd, err := clientv3.New(clientv3.Config{
-		Endpoints:   []string{"192.168.195.129:2379"},
+		Endpoints:   []string{"127.0.0.1:2379"},
 		DialTimeout: 5 * time.Second,
 	})
 	if err != nil {
 		log.Panicln("初始化注册中心失败 " + err.Error())
 	}
 	ETCD = &Registry{
-		client: etcd,
+		client:   etcd,
+		Services: make(map[string]string),
 	}
 }
 
@@ -35,24 +35,18 @@ func (client *Registry) DiscoverService(serviceName string) error {
 		return err
 	}
 	for _, v := range resp.Kvs {
-		msg := fmt.Sprintf("update: " + string(v.Key) + " " + string(v.Value))
-		Logger.Logger.Info(msg)
 		client.UpdateService(string(v.Key), string(v.Value))
 	}
-
 	// 监听服务的变化
-	rch := client.client.Watch(context.Background(), serviceName)
 	go func() {
-		for watchResponse := range rch {
-			for _, ev := range watchResponse.Events {
-				if ev.Type == clientv3.EventTypePut {
-					// 服务注册（新增或更新）
-					msg := fmt.Sprintf("update: " + string(ev.Kv.Key) + " " + string(ev.Kv.Value))
-					Logger.Logger.Info(msg)
-				} else if ev.Type == clientv3.EventTypeDelete {
-					// 服务注销
-					msg := fmt.Sprintf("delete: " + string(ev.Kv.Key))
-					Logger.Logger.Info(msg)
+		watchchan := client.client.Watch(context.Background(), serviceName, clientv3.WithPrefix())
+		for watch := range watchchan {
+			for _, event := range watch.Events {
+				switch event.Type {
+				case mvccpb.PUT:
+					client.UpdateService(string(event.Kv.Key), string(event.Kv.Value))
+				case mvccpb.DELETE:
+					client.DeleteService(string(event.Kv.Key))
 				}
 			}
 		}

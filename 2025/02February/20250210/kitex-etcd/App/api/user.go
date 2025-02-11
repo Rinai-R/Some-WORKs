@@ -1,8 +1,8 @@
 package api
 
 import (
-	"Golang/2025/02February/20250210/kitex-etcd/App/Client/UserClient"
-	"Golang/2025/02February/20250210/kitex-etcd/Logger"
+	"Golang/2025/02February/20250210/kitex-etcd/App/Initialize/Client/UserClient"
+	"Golang/2025/02February/20250210/kitex-etcd/App/Initialize/Logger"
 	"Golang/2025/02February/20250210/kitex-etcd/kitex_gen/user"
 	"context"
 	"github.com/cloudwego/hertz/pkg/app"

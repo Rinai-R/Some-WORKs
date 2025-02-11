@@ -15,7 +15,7 @@ var EtcdRegistry *Registry
 
 func init() {
 	etcd, err := clientv3.New(clientv3.Config{
-		Endpoints:   []string{"127.0.0.1:2379"},
+		Endpoints:   []string{"localhost:2379"},
 		DialTimeout: 5 * time.Second,
 	})
 	if err != nil {

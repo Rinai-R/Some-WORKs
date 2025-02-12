@@ -15,7 +15,7 @@ func InitSentinel() {
 	_, err = flow.LoadRules([]*flow.Rule{
 		{
 			Resource:               "kitex-etcd",
-			Threshold:              10,
+			Threshold:              50,
 			TokenCalculateStrategy: flow.Direct,
 			ControlBehavior:        flow.Reject,
 		},

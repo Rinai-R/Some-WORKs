@@ -8,7 +8,7 @@ import (
 func main() {
 	client := resty.New()
 
-	for i := 0; i <= 15; i++ {
+	for i := 0; i <= 10; i++ {
 		go func() {
 			for {
 				rsp, err := client.R().SetHeaders(map[string]string{}).Post("http://localhost:8888/user/login")

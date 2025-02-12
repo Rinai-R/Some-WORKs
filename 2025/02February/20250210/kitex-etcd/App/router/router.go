@@ -6,8 +6,7 @@ import (
 	"github.com/cloudwego/hertz/pkg/app/server"
 )
 
-func InitRouter() {
-	r := server.Default()
+func InitRouter(r *server.Hertz) {
 
 	r.Use(Middleware.Sentinel)
 

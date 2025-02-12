@@ -3,6 +3,7 @@ package main
 import (
 	"Golang/2025/02February/20250210/kitex-etcd/kitex_gen/user/user"
 	"Golang/2025/02February/20250210/kitex-etcd/server/Registry"
+	"Golang/2025/02February/20250210/kitex-etcd/server/user/middleware"
 	"context"
 	"fmt"
 	"github.com/cloudwego/kitex/pkg/rpcinfo"
@@ -35,6 +36,7 @@ func main() {
 		&UserImpl{}, // 替换为您的服务实现
 		server.WithServerBasicInfo(&rpcinfo.EndpointBasicInfo{ServiceName: "user"}),
 		server.WithServiceAddr(addr), // 服务地址
+		server.WithMiddleware(middleware.OpenTelemetryMiddleware()),
 	)
 
 	// 启动服务

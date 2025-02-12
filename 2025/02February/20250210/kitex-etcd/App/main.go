@@ -25,7 +25,7 @@ func main() {
 	)
 	defer p.Shutdown(context.Background())
 	h := server.Default()
-	tracer, cfg := hertztracing.NewServerTracer()
+	_, cfg := hertztracing.NewServerTracer()
 	h.Use(hertztracing.ServerMiddleware(cfg))
 	h.Use()
 	router.InitRouter(h)

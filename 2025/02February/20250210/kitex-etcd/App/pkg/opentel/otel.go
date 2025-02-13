@@ -86,7 +86,7 @@ func newPropagator() propagation.TextMapPropagator {
 
 func newTraceProvider(res *resource.Resource) (*trace.TracerProvider, error) {
 	traceExporter, err := jaeger.New(
-		jaeger.WithCollectorEndpoint(jaeger.WithEndpoint("http://192.168.195.129:14268/api/traces")),
+		jaeger.WithCollectorEndpoint(jaeger.WithEndpoint("http://localhost:14268/api/traces")),
 	)
 	if err != nil {
 		return nil, err

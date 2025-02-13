@@ -11,7 +11,7 @@ import (
 // OpenTelemetryMiddleware 中间件
 func OpenTelemetryMiddleware() app.HandlerFunc {
 	return func(c context.Context, ctx *app.RequestContext) {
-		tracer := otel.Tracer("tracer")
+		tracer := otel.Tracer("api-tracer")
 		var span trace.Span
 		// 从请求中获取 tracecontext
 		c, span = tracer.Start(c, "api-span", trace.WithAttributes(attribute.String("method", string(ctx.Request.Method()))))

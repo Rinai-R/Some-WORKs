@@ -5,11 +5,12 @@ import (
 	"Golang/2025/02February/20250210/kitex-etcd/App/Initialize/Client"
 	"Golang/2025/02February/20250210/kitex-etcd/App/Initialize/Client/UserClient"
 	"Golang/2025/02February/20250210/kitex-etcd/App/Initialize/Logger"
-	"Golang/2025/02February/20250210/kitex-etcd/App/Middleware"
-	"Golang/2025/02February/20250210/kitex-etcd/App/pkg/opentel"
+	hertztracing "github.com/hertz-contrib/obs-opentelemetry/tracing"
+
 	"Golang/2025/02February/20250210/kitex-etcd/App/router"
 	"context"
 	"github.com/cloudwego/hertz/pkg/app/server"
+	"github.com/hertz-contrib/obs-opentelemetry/provider"
 )
 
 func main() {
@@ -18,15 +19,15 @@ func main() {
 	UserClient.InitUserClient()
 	Initialize.InitSentinel()
 	// 初始化 OpenTelemetry Provider
-	sdk, err := opentel.SetupOTelSDK(context.Background(), "api", "1.0.0")
-	if err != nil {
-		return
-	}
-	defer sdk(context.Background())
-	h := server.Default()
+	p := provider.NewOpenTelemetryProvider(
+		provider.WithServiceName("api"),
+		provider.WithExportEndpoint("localhost:4317"),
+		provider.WithInsecure(),
+	)
+	defer p.Shutdown(context.Background())
 
-	h.Use(Middleware.OpenTelemetryMiddleware())
-
-	h.Use()
+	tracer, cfg := hertztracing.NewServerTracer()
+	h := server.Default(tracer)
+	h.Use(hertztracing.ServerMiddleware(cfg))
 	router.InitRouter(h)
 }

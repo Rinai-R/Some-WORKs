@@ -13,7 +13,7 @@ func OpenTelemetryMiddleware() endpoint.Middleware {
 	return func(next endpoint.Endpoint) endpoint.Endpoint {
 		return func(ctx context.Context, req interface{}, resp interface{}) (err error) {
 			// 继承 Hertz 传递过来的上下文
-			tracer := otel.Tracer("tracer")
+			tracer := otel.Tracer("user-tracer")
 			var span trace.Span
 			ctx, span = tracer.Start(ctx, "user-span")
 			defer span.End()

@@ -1,26 +1,25 @@
 package main
 
 import (
+	"Golang/2025/02February/20250210/kitex-etcd/App/pkg/opentel"
 	"Golang/2025/02February/20250210/kitex-etcd/kitex_gen/user/user"
 	"Golang/2025/02February/20250210/kitex-etcd/server/Registry"
-	"Golang/2025/02February/20250210/kitex-etcd/server/user/middleware"
 	"context"
 	"fmt"
 	"github.com/cloudwego/kitex/pkg/rpcinfo"
 	"github.com/cloudwego/kitex/server"
-	"github.com/kitex-contrib/obs-opentelemetry/provider"
 	"log"
 	"net"
 )
 
 func main() {
 	// 初始化 OpenTelemetry Provider
-	p := provider.NewOpenTelemetryProvider(
-		provider.WithInsecure(),          // 如果使用 HTTPS，可以去掉此选项
-		provider.WithServiceName("user"), // 替换为你的服务名称
-		provider.WithExportEndpoint("http://192.168.195.129:14268/api/traces"), // Jaeger 的地址
-	)
-	defer p.Shutdown(context.Background())
+	// 初始化 OpenTelemetry Provider
+	sdk, err := opentel.SetupOTelSDK(context.Background(), "user", "1.0.0")
+	if err != nil {
+		return
+	}
+	defer sdk(context.Background())
 
 	// 解析服务地址
 	addr, err := net.ResolveTCPAddr("tcp", "127.0.0.1:10001")
@@ -36,7 +35,7 @@ func main() {
 		&UserImpl{}, // 替换为您的服务实现
 		server.WithServerBasicInfo(&rpcinfo.EndpointBasicInfo{ServiceName: "user"}),
 		server.WithServiceAddr(addr), // 服务地址
-		server.WithMiddleware(middleware.OpenTelemetryMiddleware()),
+		//server.WithMiddleware(middleware.OpenTelemetryMiddleware()),
 	)
 
 	// 启动服务

@@ -17,23 +17,24 @@ import (
 
 // SetupOTelSDK 引导OpenTelemetry管道。
 // 如果此函数不返回错误，请确保调用shutdown函数以进行适当的清理。
-func SetupOTelSDK(ctx context.Context, serviceName, serviceVersion string) (shutdown func(context.Context) error, err error) {
-	var shutdownFuncs []func(context.Context) error
+func SetupOTelSDK(ctx context.Context, serviceName, serviceVersion string) (Shutdown func(context.Context) error, err error) {
+	var ShutdownFuncs []func(context.Context) error
 
 	// shutdown函数调用通过shutdownFuncs注册的清理函数，并将错误连接在一起。
 	// 每个注册的清理函数将被调用一次。
-	shutdown = func(ctx context.Context) error {
+	Shutdown = func(ctx context.Context) error {
 		var err error
-		for _, fn := range shutdownFuncs {
+
+		for _, fn := range ShutdownFuncs {
 			err = errors.Join(err, fn(ctx))
 		}
-		shutdownFuncs = nil
+		ShutdownFuncs = nil
 		return err
 	}
 
 	// handleErr函数调用shutdown函数以进行清理，并确保返回所有错误。
 	handleErr := func(inErr error) {
-		err = errors.Join(inErr, shutdown(ctx))
+		err = errors.Join(inErr, Shutdown(ctx))
 	}
 
 	// 设置资源。
@@ -53,7 +54,7 @@ func SetupOTelSDK(ctx context.Context, serviceName, serviceVersion string) (shut
 		handleErr(err)
 		return
 	}
-	shutdownFuncs = append(shutdownFuncs, tracerProvider.Shutdown)
+	ShutdownFuncs = append(ShutdownFuncs, tracerProvider.Shutdown)
 	otel.SetTracerProvider(tracerProvider)
 
 	// 设置度量仪提供程序。
@@ -62,7 +63,7 @@ func SetupOTelSDK(ctx context.Context, serviceName, serviceVersion string) (shut
 		handleErr(err)
 		return
 	}
-	shutdownFuncs = append(shutdownFuncs, meterProvider.Shutdown)
+	ShutdownFuncs = append(ShutdownFuncs, meterProvider.Shutdown)
 	otel.SetMeterProvider(meterProvider)
 
 	return

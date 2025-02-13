@@ -5,11 +5,11 @@ import (
 	"Golang/2025/02February/20250210/kitex-etcd/App/Initialize/Client"
 	"Golang/2025/02February/20250210/kitex-etcd/App/Initialize/Client/UserClient"
 	"Golang/2025/02February/20250210/kitex-etcd/App/Initialize/Logger"
+	"Golang/2025/02February/20250210/kitex-etcd/App/Middleware"
+	"Golang/2025/02February/20250210/kitex-etcd/App/pkg/opentel"
 	"Golang/2025/02February/20250210/kitex-etcd/App/router"
 	"context"
 	"github.com/cloudwego/hertz/pkg/app/server"
-	hertztracing "github.com/hertz-contrib/obs-opentelemetry/tracing"
-	"github.com/kitex-contrib/obs-opentelemetry/provider"
 )
 
 func main() {
@@ -18,15 +18,15 @@ func main() {
 	UserClient.InitUserClient()
 	Initialize.InitSentinel()
 	// 初始化 OpenTelemetry Provider
-	p := provider.NewOpenTelemetryProvider(
-		provider.WithInsecure(),         // 如果使用 HTTPS，可以去掉此选项
-		provider.WithServiceName("api"), // 替换为你的服务名称
-		provider.WithExportEndpoint("http://192.168.195.129:14268/api/traces"), // Jaeger 的地址
-	)
-	defer p.Shutdown(context.Background())
+	sdk, err := opentel.SetupOTelSDK(context.Background(), "api", "1.0.0")
+	if err != nil {
+		return
+	}
+	defer sdk(context.Background())
 	h := server.Default()
-	_, cfg := hertztracing.NewServerTracer()
-	h.Use(hertztracing.ServerMiddleware(cfg))
+
+	h.Use(Middleware.OpenTelemetryMiddleware())
+
 	h.Use()
 	router.InitRouter(h)
 }

@@ -4,7 +4,6 @@ import (
 	"Golang/2025/02February/20250210/kitex-etcd/kitex_gen/user/user"
 	"Golang/2025/02February/20250210/kitex-etcd/server/Registry"
 	"context"
-	"fmt"
 	"github.com/cloudwego/kitex/pkg/rpcinfo"
 	"github.com/cloudwego/kitex/server"
 	"github.com/kitex-contrib/obs-opentelemetry/provider"
@@ -44,8 +43,4 @@ func main() {
 	if err := svr.Run(); err != nil {
 		log.Fatalf("Failed to start server: %v", err)
 	}
-
-	// 服务停止时注销服务
-	defer Registry.EtcdRegistry.ServiceUnRegister("user")
-	defer fmt.Println("Service stopped gracefully")
 }

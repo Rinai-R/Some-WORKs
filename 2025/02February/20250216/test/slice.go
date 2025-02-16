@@ -10,4 +10,30 @@ func main() {
 	s = s[:len(s)-2]
 	s = make([]int, 2)
 	fmt.Println(*p)
+
+	m := X{}
+	(&m).Set(1)
+	fmt.Println(Test(&m))
+
+}
+
+type L interface {
+	Get() int
+	Set(int)
+}
+
+type X struct {
+	x int
+}
+
+func (x *X) Get() int {
+	return (*x).x
+}
+
+func (x *X) Set(i int) {
+	(*x).x = i
+}
+
+func Test(l L) int {
+	return l.Get()
 }

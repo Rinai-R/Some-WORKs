@@ -8,10 +8,10 @@ import (
 func main() {
 	client := resty.New()
 
-	for i := 0; i <= 10; i++ {
+	for i := 0; i <= 100; i++ {
 		go func() {
 			for {
-				rsp, err := client.R().SetHeaders(map[string]string{}).Post("http://localhost:8888/user/login")
+				rsp, err := client.R().SetHeaders(map[string]string{}).Post("http://121.40.101.83/LanShanLibrary/login?username=TWind&password=123456")
 				if err != nil {
 					fmt.Println(err)
 					return

@@ -218,6 +218,10 @@ func AlterUserInfo(NewInfo model.User, username string) bool {
 			rdb.Set(ctx, CacheKey, cacheData, time.Hour)
 		}
 	}
+	err := tx.Commit()
+	if err != nil {
+		return false
+	}
 	return true
 }
 

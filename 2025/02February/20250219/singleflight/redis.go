@@ -59,7 +59,6 @@ func (s *service) handleRequest(ctx context.Context, request *Request) (*Respons
 	if len(res) == 0 {
 		LockKey := "locked:" + cacheKey
 		locked, _ := rdb.SetNX(ctx, LockKey, "locked", time.Second*10).Result()
-		fmt.Println("locked:", locked)
 		if locked {
 			fmt.Println("redis setnx-----------------------------------------------")
 			//todo
@@ -70,8 +69,12 @@ func (s *service) handleRequest(ctx context.Context, request *Request) (*Respons
 				password: "sql查询",
 			}, nil
 		} else {
-			t := rand.Int() % 100
-			time.Sleep(time.Millisecond * time.Duration(t))
+			//1000并发：不等待：13.679386s
+			//采取随机数等待：4.0750594s
+			//若细化等待时间粒度，在0~100000microsecond时，效率最高：826.1751ms
+			//万级并发量有点玄学了，果然只能找其他方法了吗...
+			t := rand.Int() % 100000
+			time.Sleep(time.Microsecond * time.Duration(t))
 			return s.handleRequest(ctx, request)
 		}
 	}
@@ -89,6 +92,7 @@ func main() {
 	n := 1000
 	wg.Add(n)
 	s := &service{requestGroup: singleflight.Group{}}
+	begin := time.Now()
 	for i := 0; i < n; i++ {
 		go func() {
 			defer wg.Done() // 确保每个 goroutine 都调用 wg.Done()
@@ -106,4 +110,5 @@ func main() {
 		}()
 	}
 	wg.Wait() // 等待所有 goroutine 完成
+	defer fmt.Println(time.Since(begin))
 }

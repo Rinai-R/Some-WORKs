@@ -9,6 +9,7 @@ import (
 	"math/rand"
 	"strconv"
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
@@ -25,6 +26,8 @@ type Response struct {
 	password string
 }
 
+var sum = 0
+
 var rdb *redis.Client
 
 func init() {
@@ -38,6 +41,7 @@ func init() {
 func (s *service) handleRequest_Group(ctx context.Context, request *Request) (*Response, error) {
 	str, _ := json.Marshal(request)
 	v, err, _ := s.requestGroup.Do(string(str), func() (interface{}, error) {
+		sum += 1
 		result, err := rdb.HGetAll(ctx, "user:"+strconv.FormatInt(request.user_id, 10)).Result()
 		if err != nil {
 			return nil, err
@@ -64,6 +68,7 @@ func (s *service) handleRequest(ctx context.Context, request *Request) (*Respons
 			//todo
 			//访问数据库，将数据存入缓存
 			rdb.Del(ctx, LockKey)
+			sum += 1
 			return &Response{
 				username: "sql查询",
 				password: "sql查询",
@@ -87,28 +92,55 @@ func (s *service) handleRequest(ctx context.Context, request *Request) (*Respons
 	}, nil
 }
 func main() {
-	var ctx = context.Background()
+	//var ctx = context.Background()
 	wg := &sync.WaitGroup{}
 	n := 1000
 	wg.Add(n)
-	s := &service{requestGroup: singleflight.Group{}}
+	//s := &service{requestGroup: singleflight.Group{}}
 	begin := time.Now()
 	for i := 0; i < n; i++ {
 		go func() {
 			defer wg.Done() // 确保每个 goroutine 都调用 wg.Done()
-
-			response, err := s.handleRequest(ctx, &Request{
-				user_id: 2,
-			})
-			if err != nil {
-				// 打印错误信息，并返回
-				fmt.Println("Error:", err)
-				return
-			}
-			// 如果没有错误，打印 response
-			fmt.Println(*response)
+			lockTest()
+			//response, err := s.handleRequest(ctx, &Request{
+			//	user_id: 2,
+			//})
+			//if err != nil {
+			//	// 打印错误信息，并返回
+			//	fmt.Println("Error:", err)
+			//	return
+			//}
+			//// 如果没有错误，打印 response
+			//fmt.Println(*response)
 		}()
 	}
 	wg.Wait() // 等待所有 goroutine 完成
 	defer fmt.Println(time.Since(begin))
+	defer fmt.Println(sum)
+}
+
+var lock sync.Mutex
+
+// μs单位，相似了,byd,setnx不如lock
+func lockTest() {
+	lo.Lock()
+	sum += 1
+	lo.Unlock()
+}
+
+var lo = &MyLock{num: 0}
+
+type MyLock struct {
+	num int64
+}
+
+func (l *MyLock) Lock() {
+	for {
+		if atomic.CompareAndSwapInt64(&(l.num), 0, 1) {
+			return
+		}
+	}
+}
+func (l *MyLock) Unlock() {
+	atomic.StoreInt64(&(l.num), 0)
 }

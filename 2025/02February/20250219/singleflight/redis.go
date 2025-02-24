@@ -32,10 +32,25 @@ var rdb *redis.Client
 
 func init() {
 	rdb = redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379",
-		Password: "123456",
+		Addr:     "192.168.195.129:6379",
+		Password: "~Cy710822",
 		DB:       0,
 	})
+}
+
+var l MyLock
+
+func dis_Lock(Key string) {
+	for {
+		locked, _ := rdb.SetNX(context.Background(), Key, 1, time.Second).Result()
+		if locked {
+			break
+		}
+		continue
+	}
+}
+func dis_Unlock(Key string) {
+	rdb.Del(context.Background(), Key)
 }
 
 func (s *service) handleRequest_Group(ctx context.Context, request *Request) (*Response, error) {
@@ -55,6 +70,31 @@ func (s *service) handleRequest_Group(ctx context.Context, request *Request) (*R
 		return nil, err
 	}
 	return v.(*Response), nil
+}
+func (s *service) handleRequest2(ctx context.Context, request *Request) (*Response, error) {
+	cacheKey := fmt.Sprintf("user:%d", request.user_id)
+	res, err := rdb.HGetAll(ctx, cacheKey).Result()
+	if len(res) == 0 {
+		dis_Lock(cacheKey)
+		defer dis_Unlock(cacheKey)
+		//l.Lock()
+		//defer l.Unlock()
+		//lock.Lock()
+		//defer lock.Unlock()
+		sum += 1
+		return &Response{
+			username: "sql查询",
+			password: "sql查询",
+		}, nil
+
+	}
+	if err != nil {
+		return nil, err
+	}
+	return &Response{
+		username: res["name"],
+		password: res["password"],
+	}, nil
 }
 
 func (s *service) handleRequest(ctx context.Context, request *Request) (*Response, error) {
@@ -92,26 +132,26 @@ func (s *service) handleRequest(ctx context.Context, request *Request) (*Respons
 	}, nil
 }
 func main() {
-	//var ctx = context.Background()
+	var ctx = context.Background()
 	wg := &sync.WaitGroup{}
 	n := 1000
 	wg.Add(n)
-	//s := &service{requestGroup: singleflight.Group{}}
+	s := &service{requestGroup: singleflight.Group{}}
 	begin := time.Now()
 	for i := 0; i < n; i++ {
 		go func() {
 			defer wg.Done() // 确保每个 goroutine 都调用 wg.Done()
-			lockTest()
-			//response, err := s.handleRequest(ctx, &Request{
-			//	user_id: 2,
-			//})
-			//if err != nil {
-			//	// 打印错误信息，并返回
-			//	fmt.Println("Error:", err)
-			//	return
-			//}
-			//// 如果没有错误，打印 response
-			//fmt.Println(*response)
+
+			response, err := s.handleRequest2(ctx, &Request{
+				user_id: 2,
+			})
+			if err != nil {
+				// 打印错误信息，并返回
+				fmt.Println("Error:", err)
+				return
+			}
+			// 如果没有错误，打印 response
+			fmt.Println(*response)
 		}()
 	}
 	wg.Wait() // 等待所有 goroutine 完成

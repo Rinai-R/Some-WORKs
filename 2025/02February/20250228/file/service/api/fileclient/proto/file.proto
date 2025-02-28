@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+option go_package=".;pb";
+
+
+message FileChunk {
+  bytes content = 1;
+  string path = 2;
+  string fileName = 3;
+  int32 index = 4;
+  int32 totalChunks = 5;
+}
+
+message BaseRsp {
+  string message = 1;
+  bool success = 2;
+}
+
+service File {
+  rpc UploadFile (stream FileChunk) returns (BaseRsp);
+}

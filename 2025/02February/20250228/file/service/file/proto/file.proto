@@ -11,11 +11,22 @@ message FileChunk {
   int32 totalChunks = 5;
 }
 
+message DownloadReq {
+  string path = 1;
+  string filename = 2;
+}
+
 message BaseRsp {
   string message = 1;
   bool success = 2;
 }
 
+message DownloadRsp {
+  bytes content = 1;
+  BaseRsp Base = 2;
+}
+
 service File {
   rpc UploadFile (stream FileChunk) returns (BaseRsp);
+  rpc DownloadFile (stream DownloadReq) returns (stream DownloadRsp);
 }

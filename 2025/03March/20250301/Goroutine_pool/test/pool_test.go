@@ -1,8 +1,10 @@
-package main
+package test
 
 import (
 	"fmt"
 	"sync"
+	"testing"
+	"time"
 )
 
 type GoroutinePool struct {
@@ -50,13 +52,13 @@ func (pool *GoroutinePool) Work() {
 }
 
 func (pool *GoroutinePool) SubmitTask(task func()) {
-	pool.mutex.Lock()
-	defer pool.mutex.Unlock()
+	//pool.mutex.Lock()
+	//defer pool.mutex.Unlock()
 	pool.Count.Add(1)
-	if pool.closed {
-		fmt.Println("goroutine pool closed")
-		return
-	}
+	//if pool.closed {
+	//	fmt.Println("goroutine pool closed")
+	//	return
+	//}
 	pool.Tasks <- task
 }
 
@@ -71,17 +73,23 @@ func (pool *GoroutinePool) Wait() {
 	pool.Count.Wait()
 }
 
-func main() {
-	pool := NewGoroutinePool(10000, 10000)
-	pool.Start()
-	m := 0
-	for i := 1; i <= 10000; i++ {
-		pool.SubmitTask(func() {
-			m += 1
-			fmt.Println(m)
-		})
+func Test_Pool(t *testing.T) {
+	for j := 0; j < 50; j++ {
+		pool := NewGoroutinePool(1000000, 1000000)
+		pool.Start()
+		cur := time.Now()
+		for i := 0; i < 1000000; i++ {
+			pool.SubmitTask(func() {
+				time.Sleep(time.Microsecond)
+			})
+		}
+		pool.Wait()
+		pool.Stop()
+		fmt.Printf("%d goroutines cost %v\n", j, time.Since(cur))
+		//if m != 1000 {
+		//	t.Error("Expected 1000 tasks but got ", m)
+		//} else {
+		//	fmt.Println("OK")
+		//}
 	}
-	pool.Wait()
-	defer fmt.Println(m, "=-------")
-	defer pool.Stop()
 }

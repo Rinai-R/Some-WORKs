@@ -1,8 +1,10 @@
-package main
+package test2
 
 import (
 	"fmt"
 	"sync"
+	"testing"
+	"time"
 )
 
 type GoroutinePool struct {
@@ -71,17 +73,28 @@ func (pool *GoroutinePool) Wait() {
 	pool.Count.Wait()
 }
 
-func main() {
-	pool := NewGoroutinePool(10000, 10000)
-	pool.Start()
-	m := 0
-	for i := 1; i <= 10000; i++ {
-		pool.SubmitTask(func() {
-			m += 1
-			fmt.Println(m)
-		})
+var GlobalLock = sync.Mutex{}
+
+func Test_Pool(t *testing.T) {
+	for j := 1; j < 5000; j++ {
+		pool := NewGoroutinePool(j, 5000)
+		pool.Start()
+		cur := time.Now()
+		m := 0
+		for i := 1; i <= 5000; i++ {
+			pool.SubmitTask(func() {
+				GlobalLock.Lock()
+				m += 1
+				GlobalLock.Unlock()
+			})
+		}
+		pool.Wait()
+		pool.Stop()
+		fmt.Printf("%d goroutines cost %v\n", j, time.Since(cur))
+		//if m != 1000 {
+		//	t.Error("Expected 1000 tasks but got ", m)
+		//} else {
+		//	fmt.Println("OK")
+		//}
 	}
-	pool.Wait()
-	defer fmt.Println(m, "=-------")
-	defer pool.Stop()
 }

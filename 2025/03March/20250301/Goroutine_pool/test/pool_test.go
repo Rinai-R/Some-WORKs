@@ -73,14 +73,15 @@ func (pool *GoroutinePool) Wait() {
 	pool.Count.Wait()
 }
 
+// 9.665
 func Test_Pool(t *testing.T) {
 	for j := 0; j < 50; j++ {
-		pool := NewGoroutinePool(1000000, 1000000)
+		pool := NewGoroutinePool(10, 1000000)
 		pool.Start()
 		cur := time.Now()
 		for i := 0; i < 1000000; i++ {
 			pool.SubmitTask(func() {
-				time.Sleep(time.Microsecond)
+				fmt.Printf("")
 			})
 		}
 		pool.Wait()

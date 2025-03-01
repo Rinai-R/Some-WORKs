@@ -72,7 +72,7 @@ func (pool *GoroutinePool) Wait() {
 }
 
 func main() {
-	pool := NewGoroutinePool(10000, 10000)
+	pool := NewGoroutinePool(1, 10000)
 	pool.Start()
 	m := 0
 	for i := 1; i <= 10000; i++ {

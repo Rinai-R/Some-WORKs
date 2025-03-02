@@ -19,12 +19,14 @@ type MemPool struct {
 	free      *Block // 空闲链表
 	pageCount int    // 记录当前总分配数
 	pageLimit int    // 池子最大容量
+	pages     []*Page
 }
 
 type Page struct {
 	next     *Page
 	freeList *Block
-	Begin    *Block
+	blocks   [blockNum]Block
+	used     int
 }
 
 // Block 内存块
@@ -39,16 +41,17 @@ func AllocPage() *Page {
 	NewPage := &Page{
 		next:     nil,
 		freeList: nil,
+		used:     0,
 	}
 	for i := 0; i < blockNum; i++ {
-		NewBlock := &Block{}
-		if i == 0 {
-			NewPage.Begin = NewBlock
+		if i < blockNum-1 {
+			NewPage.blocks[i].next = unsafe.Pointer(&NewPage.blocks[i+1])
+		} else {
+			NewPage.blocks[i].next = nil
 		}
-		NewBlock.page = NewPage
-		NewBlock.next = unsafe.Pointer(NewPage.freeList)
-		NewPage.freeList = NewBlock
+		NewPage.blocks[i].page = NewPage
 	}
+	NewPage.freeList = &NewPage.blocks[0]
 	return NewPage
 }
 
@@ -58,13 +61,18 @@ func NewMemPool(size, limit int) *MemPool {
 		free:      nil,
 		mutex:     sync.Mutex{},
 		pageLimit: limit,
+		pages:     make([]*Page, 0, limit),
 	}
 	for i := 0; i < size; i++ {
-		page := AllocPage()
-		page.Begin.next = unsafe.Pointer(mp.free)
-		mp.free = page.freeList
+		mp.pages = append(mp.pages, AllocPage())
+		mp.pages[i].blocks[blockNum-1].next = unsafe.Pointer(mp.free)
+		if i > 0 {
+			mp.pages[i].next = mp.pages[i-1]
+		}
+		mp.free = mp.pages[i].freeList
 		mp.pageCount++
 	}
+
 	return mp
 }
 
@@ -80,38 +88,60 @@ func (mp *MemPool) Alloc() *Block {
 		}
 		fmt.Printf("\n alloc success %v,%v", mp.pageCount, mp.pageLimit)
 		newpage := AllocPage()
+		if len(mp.pages) > 0 {
+			newpage.next = mp.pages[mp.pageCount-1]
+		}
+		mp.pages = append(mp.pages, newpage)
 		mp.pageCount++
 		mp.free = newpage.freeList
 	}
-
 	block := mp.free
 	mp.free = (*Block)(block.next)
+	block.page.used++
 	fmt.Printf("\n auto alloc success")
 	return block
 }
 
 // Free 释放内存
 func (mp *MemPool) Free(block *Block) {
+	mp.mutex.Lock()
+	defer mp.mutex.Unlock()
 	if block == nil {
 		fmt.Printf("\n nil pointer forbidden")
 		return
 	}
-	mp.mutex.Lock()
-	defer mp.mutex.Unlock()
-
+	block.page.used--
+	if block.page.used == 0 {
+		mp.releasePage(block.page)
+		return
+	}
 	block.next = unsafe.Pointer(mp.free)
 	mp.free = block
 }
 
+func (mp *MemPool) releasePage(page *Page) {
+	var prev *Page = nil
+	for i, p := range mp.pages {
+		if p == page {
+			if prev != nil {
+				prev.next = page.next
+			}
+			// 直接删除当前元素
+			mp.pages = append(mp.pages[:i], mp.pages[i+1:]...)
+			mp.pageCount--
+			fmt.Printf("\n page %p released", page)
+			break
+		}
+		prev = p
+	}
+}
 func main() {
 	pool := NewMemPool(1, 2)
 
 	// 分配 3 个块
 	b1 := pool.Alloc()
 	b2 := pool.Alloc()
-
 	b3 := pool.Alloc()
-
 	b4 := pool.Alloc()
 	b5 := pool.Alloc()
 	b6 := pool.Alloc()
@@ -121,15 +151,16 @@ func main() {
 	fmt.Printf("\nAllocated blocks:\n %p\n %p\n %p \n %p\n %p \n %p \n %p \n %p", b1, b2, b3, b4, b5, b6, b7, b8)
 
 	//释放
-	//pool.Free(b1)
-	//pool.Free(b2)
-	//pool.Free(b3)
-	//pool.Free(b4)
-	//
-	////重新分配，应该复用刚刚释放的块
-	//a1 := pool.Alloc()
-	//a2 := pool.Alloc()
-	//a3 := pool.Alloc()
-	//
-	//fmt.Printf("\nReallocated blocks:\n %p \n %p \n %p", a1, a2, a3)
+	pool.Free(b1)
+	pool.Free(b2)
+	pool.Free(b3)
+	pool.Free(b4)
+
+	//重新分配，应该复用刚刚释放的块
+	a1 := pool.Alloc()
+	a2 := pool.Alloc()
+	a3 := pool.Alloc()
+	a4 := pool.Alloc()
+
+	fmt.Printf("\nReallocated blocks:\n %p \n %p \n %p \n %p", a1, a2, a3, a4)
 }

@@ -120,21 +120,40 @@ func (mp *MemPool) Free(block *Block) {
 }
 
 func (mp *MemPool) releasePage(page *Page) {
-	var prev *Page = nil
+	// 清理 free 链表，防止已释放 Page 的 Block 仍然存在于 free
+	var prev, curr *Block
+	curr = mp.free
+	for curr != nil {
+		next := (*Block)(curr.next)
+		if curr.page == page {
+			fmt.Printf("\nfree中存在原来的区块%p", curr)
+			if prev != nil {
+				prev.next = curr.next
+			} else {
+				mp.free = next
+			}
+		} else {
+			prev = curr
+		}
+		curr = next
+	}
+
+	// 从 pages 数组里移除 Page
+	var prevPage *Page = nil
 	for i, p := range mp.pages {
 		if p == page {
-			if prev != nil {
-				prev.next = page.next
+			if prevPage != nil {
+				prevPage.next = page.next
 			}
-			// 直接删除当前元素
 			mp.pages = append(mp.pages[:i], mp.pages[i+1:]...)
 			mp.pageCount--
 			fmt.Printf("\n page %p released", page)
 			break
 		}
-		prev = p
+		prevPage = p
 	}
 }
+
 func main() {
 	pool := NewMemPool(1, 2)
 

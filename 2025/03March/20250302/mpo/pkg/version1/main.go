@@ -97,6 +97,7 @@ func (mp *MemPool) Alloc() *Block {
 	}
 	block := mp.free
 	mp.free = (*Block)(block.next)
+	block.next = nil
 	block.page.used++
 	fmt.Printf("\n auto alloc success")
 	return block
@@ -145,7 +146,11 @@ func (mp *MemPool) releasePage(page *Page) {
 			if prevPage != nil {
 				prevPage.next = page.next
 			}
-			mp.pages = append(mp.pages[:i], mp.pages[i+1:]...)
+			if len(mp.pages)-1 > i {
+				mp.pages = append(mp.pages[:i], mp.pages[i+1:]...)
+			} else {
+				mp.pages = mp.pages[:i]
+			}
 			mp.pageCount--
 			fmt.Printf("\n page %p released", page)
 			break
@@ -166,15 +171,17 @@ func main() {
 	b6 := pool.Alloc()
 	b7 := pool.Alloc()
 	b8 := pool.Alloc()
-
-	fmt.Printf("\nAllocated blocks:\n %p\n %p\n %p \n %p\n %p \n %p \n %p \n %p", b1, b2, b3, b4, b5, b6, b7, b8)
+	b9 := pool.Alloc()
+	fmt.Printf("\n%v", pool.pages)
+	fmt.Printf("\nAllocated blocks:\n %p\n %p\n %p \n %p\n %p \n %p \n %p \n %p \n %p", b1, b2, b3, b4, b5, b6, b7, b8, b9)
 
 	//释放
 	pool.Free(b1)
 	pool.Free(b2)
 	pool.Free(b3)
 	pool.Free(b4)
-
+	fmt.Printf("\n%v", pool.pages)
+	//此处无法实现真正的释放，只是逻辑的释放，还是c语言更合适干这些...
 	//重新分配，应该复用刚刚释放的块
 	a1 := pool.Alloc()
 	a2 := pool.Alloc()

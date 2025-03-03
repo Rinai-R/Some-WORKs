@@ -112,6 +112,7 @@ func (mp *MemPool) Alloc() *Block {
 		}
 		//将页加入内存池的页切片中
 		mp.pages = append(mp.pages, newpage)
+		mp.freePage = newpage
 		//更新空闲页的数量
 		mp.freePageNum++
 		//更新页的数量

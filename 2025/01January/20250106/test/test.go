@@ -11,7 +11,7 @@ func main() {
 	client := resty.New()
 
 	// 假设在其他地方已经获取到的 session、courseId 和 rollCallId
-	session := "V2-1-16ba44bf-c23b-4aba-8d3a-1b5fe30449b1.MjUwMzkw.1736489136563.bQdiHJM-INErvg831CGWoUPAtag"
+	session := "V2-1-65547dc9-835d-4daa-8e3e-6652178824da.MjUwMzkw.1741320621302.doqHJ3Dgvsw7RhrZmsdVJ3QHbR0"
 	courseId := "64102"    // 课程 ID
 	rollCallId := "331981" // 签到 ID
 

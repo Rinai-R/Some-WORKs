@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"runtime"
 )
 
 var idx = 0
@@ -19,10 +20,14 @@ func MyCTX(ctx context.Context) {
 	idx++
 
 	newctx, cancelfunc := context.WithCancel(ctx)
+	defer cancelfunc()
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Println("Recovered in MyCTX", r)
+		}
+	}()
 	if idx == 5 {
-		cancelfunc()
-	} else {
-		defer cancelfunc()
+		panic("Context cancelled")
 	}
 
 	MyCTX(newctx)
@@ -30,4 +35,5 @@ func MyCTX(ctx context.Context) {
 
 func main() {
 	MyCTX(context.Background())
+	runtime.
 }

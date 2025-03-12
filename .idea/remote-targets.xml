@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="RemoteTargetsManager">
+    <option name="projectDefaultTargetUuid" value="f5b88c7a-a387-495d-8a45-8c70758f843c" />
+    <targets>
+      <target name="root@192.168.195.129:22" type="ssh/sftp" uuid="f5b88c7a-a387-495d-8a45-8c70758f843c">
+        <config>
+          <option name="projectRootOnTarget" value="/root/Some-WORKs" />
+          <option name="serverName" value="root@192.168.195.129:22 password" />
+        </config>
+      </target>
+    </targets>
+  </component>
+</project>

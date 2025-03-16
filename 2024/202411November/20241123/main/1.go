@@ -1,8 +1,9 @@
 package main
 
 import (
-	"20241123/student"
 	"fmt"
+
+	"github.com/Rinai-R/Some-WORKs/2024/11November/20241123/student"
 )
 
 func main() {

@@ -2,9 +2,10 @@ package api
 
 //该文件包含了注册/登陆/改密码/删号的操作
 import (
-	"Golang/12December/20241201/web/dao"
-	"github.com/gin-gonic/gin"
 	"net/http"
+
+	"github.com/Rinai-R/Some-WORKs/2024/12December/20241201/web/dao"
+	"github.com/gin-gonic/gin"
 )
 
 func register(c *gin.Context) {

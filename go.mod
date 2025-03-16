@@ -1,4 +1,4 @@
-module Golang
+module github.com/Rinai-R/Some-WORKs
 
 go 1.24.0
 

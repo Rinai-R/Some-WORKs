@@ -3,19 +3,19 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/google/uuid"
-	"github.com/redis/go-redis/v9"
 	"math/rand"
 	"sync"
 	"time"
+
+	"github.com/google/uuid"
+	"github.com/redis/go-redis/v9"
 )
 
 var rdb *redis.Client
 
 func init() {
 	rdb = redis.NewClient(&redis.Options{
-		Addr:         "localhost:6379",
-		Password:     "123456",
+		Addr:         "localhost:7001",
 		DB:           0,
 		PoolSize:     500, // 默认是10×CPU核心数
 		MinIdleConns: 50,  // 保持最小空闲连接
@@ -50,8 +50,8 @@ func AcquireLock(client *redis.Client, key string, expiration time.Duration) (*D
 			go lock.autoRefresh(expiration)
 			return lock, nil
 		}
-		m := rand.Intn(1000)
-		time.Sleep(time.Millisecond * time.Duration(m))
+		m := rand.Intn(1000) + 1000
+		time.Sleep(time.Microsecond * time.Duration(m))
 	}
 }
 
@@ -108,7 +108,7 @@ func (dl *DistributedLock) Release() error {
 var x = 0
 
 func Add() {
-	lock, _ := AcquireLock(rdb, "x:lock:add", time.Second*5)
+	lock, _ := AcquireLock(rdb, "x:lock:add", time.Millisecond)
 	x += 1
 	fmt.Println("x:", x)
 	err := lock.Release()
@@ -122,7 +122,7 @@ var wg sync.WaitGroup
 
 func main() {
 	now := time.Now()
-	n := 1000
+	n := 10000
 	wg.Add(n)
 	for i := 0; i < n; i++ {
 		go Add()

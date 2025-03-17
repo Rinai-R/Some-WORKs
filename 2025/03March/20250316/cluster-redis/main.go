@@ -19,10 +19,11 @@ func main() {
 			"localhost:7006",
 		},
 	})
-	if err := rdb.Set(ctx, "key", "value", 0).Err(); err != nil {
+
+	if err := rdb.Set(ctx, "name", "value", 0).Err(); err != nil {
 		panic(err)
 	}
-	val, err := rdb.Get(ctx, "key").Result()
+	val, err := rdb.Get(ctx, "name").Result()
 	if err != nil {
 		panic(err)
 	}

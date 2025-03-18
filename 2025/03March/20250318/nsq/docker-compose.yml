@@ -1,0 +1,27 @@
+services:
+  nsqlookupd:
+    image: nsqio/nsq
+    container_name: nsqlookupd
+    command: /nsqlookupd
+    ports:
+      - "4160:4160"
+      - "4161:4161"
+  nsqd:
+    image: nsqio/nsq
+    container_name: nsqd
+    command: /nsqd --lookupd-tcp-address=nsqlookupd:4160 --data-path=/data --broadcast-address=localhost
+    ports:
+      - "4150:4150"
+      - "4151:4151"
+    volumes:
+      - ./data:/data
+    depends_on:
+      - nsqlookupd
+  nsqadmin:
+    image: nsqio/nsq
+    container_name: nsqadmin
+    command: /nsqadmin --lookupd-http-address=nsqlookupd:4161
+    ports:
+      - "4171:4171"
+    depends_on:
+      - nsqlookupd

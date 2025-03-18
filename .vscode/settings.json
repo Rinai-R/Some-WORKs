@@ -1,0 +1,15 @@
+{
+  // 设置字体
+  "editor.fontFamily": "'Maple Mono Normal'",
+  // 设置字号
+  "editor.fontSize": 15,
+  // 启用自动换行
+  "editor.wordWrap": "on",
+  // 启用连字
+  "editor.fontLigatures": true,
+  "terminal.integrated.defaultProfile.linux": {
+    "term":"xterm-256color",
+    "COLORTERM": "truecolor",
+    "FORCE_COLOR": "true"
+  }
+}

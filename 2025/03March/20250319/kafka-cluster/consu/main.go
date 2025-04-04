@@ -52,7 +52,6 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	ConsumerGroup.
 	go func() {
 		for {
 			err = ConsumerGroup.Consume(context.Background(), []string{topic}, &ConsumerGroupHandler{})

@@ -1,79 +1,44 @@
-version: '3'
 services:
-  zookeeper:
-    container_name: zookeeper
-    image: 'bitnami/zookeeper:latest'
-    ports:
-      - '2181:2181'
-    environment:
-      - ALLOW_ANONYMOUS_LOGIN=yes
-
   kafka-1:
     container_name: kafka-1
-    image: 'bitnami/kafka:latest'
+    image: bitnami/kafka:latest
+    hostname: kafka-1
     ports:
       - "9092:9092"
-      - "29092:29092"
+      - "9093:9093"  # Controller 端口
     environment:
       - KAFKA_BROKER_ID=1
-      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
-      - KAFKA_CFG_LISTENERS=INTERNAL://:9092,EXTERNAL://:29092
-      - KAFKA_CFG_ADVERTISED_LISTENERS=INTERNAL://kafka-1:9092,EXTERNAL://localhost:29092
-      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
-      - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=INTERNAL
+      - KAFKA_CLUSTER_ID=kafka-cluster
+      - KAFKA_CFG_PROCESS_ROLES=broker,controller
+      - KAFKA_CFG_NODE_ID=1
+      - KAFKA_CFG_LISTENERS=INTERNAL://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+      - KAFKA_CFG_ADVERTISED_LISTENERS=INTERNAL://kafka-1:9092
+      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@kafka-1:9093
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=INTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT
       - ALLOW_PLAINTEXT_LISTENER=yes
     volumes:
-      - ./data/data-1/:/bitnami/kafka/data
-    depends_on:
-      - zookeeper
+      - ./data/data-1:/bitnami/kafka/data
+    networks:
+      - kafka-net
 
-  kafka-2:
-    container_name: kafka-2
-    image: 'bitnami/kafka:latest'
-    ports:
-      - "9093:9093"
-      - "29093:29093"
-    environment:
-      - KAFKA_BROKER_ID=2
-      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
-      - KAFKA_CFG_LISTENERS=INTERNAL://:9093,EXTERNAL://:29093
-      - KAFKA_CFG_ADVERTISED_LISTENERS=INTERNAL://kafka-2:9093,EXTERNAL://localhost:29093
-      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
-      - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=INTERNAL
-      - ALLOW_PLAINTEXT_LISTENER=yes
-    volumes:
-      - ./data/data-2/:/bitnami/kafka/data
-    depends_on:
-      - zookeeper
-
-  kafka-3:
-    container_name: kafka-3
-    image: 'bitnami/kafka:latest'
-    ports:
-      - "9094:9094"
-      - "29094:29094"
-    environment:
-      - KAFKA_BROKER_ID=3
-      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
-      - KAFKA_CFG_LISTENERS=INTERNAL://:9094,EXTERNAL://:29094
-      - KAFKA_CFG_ADVERTISED_LISTENERS=INTERNAL://kafka-3:9094,EXTERNAL://localhost:29094
-      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
-      - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=INTERNAL
-      - ALLOW_PLAINTEXT_LISTENER=yes
-    volumes:
-      - ./data/data-3/:/bitnami/kafka/data
-    depends_on:
-      - zookeeper
-
+networks:
+  kafka-net:
+    driver: bridge
   kafdrop:
     container_name: kafdrop
     image: obsidiandynamics/kafdrop
     ports:
       - '9001:9000'
     environment:
-      - KAFKA_BROKERCONNECT=kafka-1:9092,kafka-2:9093,kafka-3:9094
+      - KAFKA_BROKERCONNECT=kafka-1:9092
       - JVM_OPTS=-Xmx128m
     depends_on:
       - kafka-1
-      - kafka-2
-      - kafka-3
+
+    networks:
+      - kafka-net
+
+networks:
+  kafka-net:
+    driver: bridge

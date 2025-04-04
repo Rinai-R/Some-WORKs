@@ -1,0 +1,57 @@
+syntax = "v1"
+
+type (
+	UserLoginReq {
+		username string `json:"username"`
+		password string `json:"password"`
+	}
+	UserLoginResp {
+		code    int    `json:"code"`
+		message string `json:"message"`
+		data    string `json:"data"`
+	}
+	UserRegisterReq {
+		username string `json:"username"`
+		password string `json:"password"`
+	}
+	UserRegisterResp {
+		code    int    `json:"code"`
+		message string `json:"message"`
+		data    string `json:"data"`
+	}
+	UserPageReq  {}
+	UserPageResp {
+		code    int    `json:"code"`
+		message string `json:"message"`
+		data    User   `json:"data"`
+	}
+	User {
+		id         int    `json:"id"`
+		username   string `json:"username"`
+		created_at string `json:"created_at"`
+		updated_at string `json:"updated_at"`
+	}
+)
+
+@server (
+	group:  "user"
+	prefix: "/api/v1"
+)
+service User {
+	@handler login
+	post /user/loginLogin (UserLoginReq) returns (UserLoginResp)
+
+	@handler register
+	post /user/registerRegister (UserRegisterReq) returns (UserRegisterResp)
+}
+
+@server (
+	group:  user
+	prefix: "/api/v1"
+	jwt:    JWTAuth
+)
+service User {
+	@handler page
+	get /user/pagePage (UserPageReq) returns (UserPageResp)
+}
+
